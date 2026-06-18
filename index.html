@@ -1120,12 +1120,6 @@
 </head>
 <body>
     <div class="bg-container" id="bgContainer"></div>
-    <div class="video-container" id="videoContainer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -999; overflow: hidden; pointer-events: none;">
-        <video id="bgVideo" autoplay loop muted playsinline preload="auto" disableRemotePlayback style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -999 !important; pointer-events: none; user-select: none; -webkit-user-select: none; -webkit-transform: translateZ(0); transform: translateZ(0);">
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-light-particles-loop-24979-large.mp4" type="video/mp4">
-        </video>
-    </div>
-    <div class="video-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 0; pointer-events: none;"></div>
     <nav id="navbar" style="position: relative; z-index: 1;">
         <div class="logo">黑红8</div>
         <div class="nav-links">
@@ -1326,8 +1320,7 @@
         const videoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-abstract-light-particles-loop-24979-large.mp4';
 
         const bgContainer = document.getElementById('bgContainer');
-        const videoContainer = document.getElementById('videoContainer');
-        const videoElement = document.querySelector('#videoContainer video');
+        const bgVideo = document.getElementById('bgVideo');
 
         function initVideoPlayback(video) {
             let clickHandlerAttached = false;
@@ -1381,7 +1374,7 @@
             tryPlay();
         }
 
-        initVideoPlayback(videoElement);
+        initVideoPlayback(bgVideo);
 
         const DB_NAME = 'BackgroundDB';
         const DB_VERSION = 1;
@@ -1538,57 +1531,60 @@
                 if (bgData) {
                     if (bgData.url) {
                         if (bgData.type === 'image') {
-                            videoContainer.style.display = 'none';
+                            bgVideo.style.display = 'none';
                             bgContainer.style.backgroundImage = `url(${bgData.url})`;
                             bgContainer.style.backgroundSize = 'cover';
                             bgContainer.style.backgroundPosition = 'center';
                         } else if (bgData.type === 'video') {
                             bgContainer.style.backgroundImage = 'none';
-                            videoElement.src = bgData.url;
-                            videoElement.load();
-                            videoContainer.style.display = 'block';
-                            videoElement.play().catch(() => {});
+                            bgVideo.src = bgData.url;
+                            bgVideo.load();
+                            bgVideo.style.display = 'block';
+                            initVideoPlayback(bgVideo);
                         }
                     } else if (bgData.dataUrl) {
                         if (bgData.type === 'image') {
-                            videoContainer.style.display = 'none';
+                            bgVideo.style.display = 'none';
                             bgContainer.style.backgroundImage = `url(${bgData.dataUrl})`;
                             bgContainer.style.backgroundSize = 'cover';
                             bgContainer.style.backgroundPosition = 'center';
                         } else if (bgData.type === 'video') {
                             bgContainer.style.backgroundImage = 'none';
-                            videoElement.src = bgData.dataUrl;
-                            videoElement.load();
-                            videoContainer.style.display = 'block';
-                            videoElement.play().catch(() => {});
+                            bgVideo.src = bgData.dataUrl;
+                            bgVideo.load();
+                            bgVideo.style.display = 'block';
+                            initVideoPlayback(bgVideo);
                         }
                     } else if (bgData.file) {
                         const blob = new Blob([bgData.file], { type: bgData.type === 'image' ? 'image/*' : 'video/*' });
                         const url = URL.createObjectURL(blob);
                         if (bgData.type === 'image') {
-                            videoContainer.style.display = 'none';
+                            bgVideo.style.display = 'none';
                             bgContainer.style.backgroundImage = `url(${url})`;
                             bgContainer.style.backgroundSize = 'cover';
                             bgContainer.style.backgroundPosition = 'center';
                         } else {
                             bgContainer.style.backgroundImage = 'none';
-                            videoElement.src = url;
-                            videoElement.load();
-                            videoContainer.style.display = 'block';
-                            videoElement.play().catch(() => {});
+                            bgVideo.src = url;
+                            bgVideo.load();
+                            bgVideo.style.display = 'block';
+                            initVideoPlayback(bgVideo);
                         }
                     }
                 } else {
                     if (backgroundType === 'image') {
-                        videoContainer.style.display = 'none';
+                        bgVideo.style.display = 'none';
                         bgContainer.style.backgroundImage = `url(${imageUrl})`;
                     } else {
                         bgContainer.style.backgroundImage = 'none';
+                        bgVideo.src = videoUrl;
+                        bgVideo.load();
+                        initVideoPlayback(bgVideo);
                     }
                 }
             } catch (e) {
                 if (backgroundType === 'image') {
-                    videoContainer.style.display = 'none';
+                    bgVideo.style.display = 'none';
                     bgContainer.style.backgroundImage = `url(${imageUrl})`;
                 } else {
                     bgContainer.style.backgroundImage = 'none';
@@ -1968,7 +1964,7 @@
                         showDropZoneError();
                         return;
                     }
-                    videoContainer.style.display = 'none';
+                    bgVideo.style.display = 'none';
                     bgContainer.style.backgroundImage = `url(${dataUrl})`;
                     bgContainer.style.backgroundSize = 'cover';
                     bgContainer.style.backgroundPosition = 'center';
@@ -1990,10 +1986,10 @@
                 reader.onload = async (event) => {
                     const dataUrl = event.target.result;
                     bgContainer.style.backgroundImage = 'none';
-                    videoElement.src = dataUrl;
-                    videoElement.load();
-                    videoContainer.style.display = 'block';
-                    videoElement.play().catch(() => {});
+                    bgVideo.src = dataUrl;
+                    bgVideo.load();
+                    bgVideo.style.display = 'block';
+                    initVideoPlayback(bgVideo);
                     applyVideoMuted(loadVideoMuted());
                     if (isAuthenticated) {
                         try {
@@ -2034,12 +2030,13 @@
             clearBackground();
             clearBackgroundFromCloud();
             if (backgroundType === 'image') {
-                videoContainer.style.display = 'none';
+                bgVideo.style.display = 'none';
                 bgContainer.style.backgroundImage = `url(${imageUrl})`;
             } else {
                 bgContainer.style.backgroundImage = 'none';
-                videoElement.src = videoUrl;
-                videoContainer.style.display = 'block';
+                bgVideo.src = videoUrl;
+                bgVideo.load();
+                initVideoPlayback(bgVideo);
             }
             updateVideoSoundToggle();
             modalOverlay.classList.remove('show');
@@ -2061,16 +2058,16 @@
 
         function applyBackgroundUrl(url, type) {
             if (type === 'image') {
-                videoContainer.style.display = 'none';
+                bgVideo.style.display = 'none';
                 bgContainer.style.backgroundImage = `url(${url})`;
                 bgContainer.style.backgroundSize = 'cover';
                 bgContainer.style.backgroundPosition = 'center';
             } else if (type === 'video') {
                 bgContainer.style.backgroundImage = 'none';
-                videoElement.src = url;
-                videoElement.load();
-                videoContainer.style.display = 'block';
-                videoElement.play().catch(() => {});
+                bgVideo.src = url;
+                bgVideo.load();
+                bgVideo.style.display = 'block';
+                initVideoPlayback(bgVideo);
                 applyVideoMuted(loadVideoMuted());
             }
         }
@@ -2127,16 +2124,16 @@
         }
 
         function applyVideoMuted(muted) {
-            if (videoElement) {
-                videoElement.muted = muted;
+            if (bgVideo) {
+                bgVideo.muted = muted;
                 if (!muted) {
-                    videoElement.volume = 1.0;
+                    bgVideo.volume = 1.0;
                 }
             }
         }
 
         function updateVideoSoundToggle() {
-            const hasVideo = videoContainer.style.display !== 'none';
+            const hasVideo = bgVideo && bgVideo.style.display !== 'none' && bgVideo.src;
             if (hasVideo) {
                 videoSoundControl.classList.add('enabled');
                 toggleSwitch.classList.remove('disabled');
@@ -2681,40 +2678,36 @@
                 }
             }
             if (data.bgVideoMuted !== undefined) {
-                const videoElement = document.querySelector('#videoContainer video');
-                if (videoElement) {
-                    videoElement.muted = data.bgVideoMuted;
+                if (bgVideo) {
+                    bgVideo.muted = data.bgVideoMuted;
                 }
             }
             if (data.background) {
-                const bgContainer = document.getElementById('bgContainer');
-                const videoContainer = document.getElementById('videoContainer');
-                const videoElement = document.querySelector('#videoContainer video');
                 if (data.background.url) {
                     if (data.background.type === 'image') {
-                        videoContainer.style.display = 'none';
+                        bgVideo.style.display = 'none';
                         bgContainer.style.backgroundImage = `url(${data.background.url})`;
                         bgContainer.style.backgroundSize = 'cover';
                         bgContainer.style.backgroundPosition = 'center';
                     } else if (data.background.type === 'video') {
                         bgContainer.style.backgroundImage = 'none';
-                        videoElement.src = data.background.url;
-                        videoElement.load();
-                        videoContainer.style.display = 'block';
-                        initVideoPlayback(videoElement);
+                        bgVideo.src = data.background.url;
+                        bgVideo.load();
+                        bgVideo.style.display = 'block';
+                        initVideoPlayback(bgVideo);
                     }
                 } else if (data.background.dataUrl) {
                     if (data.background.type === 'image') {
-                        videoContainer.style.display = 'none';
+                        bgVideo.style.display = 'none';
                         bgContainer.style.backgroundImage = `url(${data.background.dataUrl})`;
                         bgContainer.style.backgroundSize = 'cover';
                         bgContainer.style.backgroundPosition = 'center';
                     } else if (data.background.type === 'video') {
                         bgContainer.style.backgroundImage = 'none';
-                        videoElement.src = data.background.dataUrl;
-                        videoElement.load();
-                        videoContainer.style.display = 'block';
-                        initVideoPlayback(videoElement);
+                        bgVideo.src = data.background.dataUrl;
+                        bgVideo.load();
+                        bgVideo.style.display = 'block';
+                        initVideoPlayback(bgVideo);
                     }
                 }
             }
@@ -2743,5 +2736,8 @@
             }
         });
     </script>
+    <video id="bgVideo" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; pointer-events: none; background-color: #0a0a0a;" muted loop playsinline preload="auto" disableRemotePlayback></video>
+    <div id="bgOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 0; pointer-events: none;"></div>
+    <div style="display:none;" id="version-mark">20260119-fix1</div>
 </body>
 </html>
