@@ -1019,6 +1019,8 @@
             color: #ff4444;
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
     <div class="bg-container" id="bgContainer"></div>
@@ -1178,6 +1180,20 @@
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjQTDH8-Xv2c-5h_seYxCdDAwRaMjor5w",
+            authDomain: "heihong8-site.firebaseapp.com",
+            databaseURL: "https://heihong8-site-default-rtdb.firebaseio.com",
+            projectId: "heihong8-site",
+            storageBucket: "heihong8-site.firebasestorage.app",
+            messagingSenderId: "288120710993",
+            appId: "1:288120710993:web:1d0fd682516fd4c1605570"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let isAuthenticated = false;
+
         const navbar = document.getElementById('navbar');
         
         window.addEventListener('scroll', () => {
@@ -1241,7 +1257,34 @@
             });
         }
 
+        async function saveBackgroundToCloud(dataUrl, type) {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/background').set({ dataUrl: dataUrl, type: type });
+            } catch (e) {}
+        }
+
+        async function loadBackgroundFromCloud() {
+            try {
+                const snapshot = await db.ref('siteData/background').once('value');
+                return snapshot.val() || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function clearBackgroundFromCloud() {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/background').remove();
+            } catch (e) {}
+        }
+
         async function loadBackground() {
+            const cloudData = await loadBackgroundFromCloud();
+            if (cloudData && cloudData.dataUrl) {
+                return { type: cloudData.type, file: null, dataUrl: cloudData.dataUrl };
+            }
             const db = await openDB();
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction(STORE_NAME, 'readonly');
@@ -1284,6 +1327,22 @@
             return defaultTexts;
         }
 
+        async function loadTextsFromCloud() {
+            try {
+                const snapshot = await db.ref('siteData/texts').once('value');
+                return snapshot.val() || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function saveTextsToCloud(texts) {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/texts').set(texts);
+            } catch (e) {}
+        }
+
         function applyTexts(texts) {
             document.querySelector('.logo').textContent = texts.siteName || defaultTexts.siteName;
             document.querySelector('.hero h1').textContent = texts.heroTitle || defaultTexts.heroTitle;
@@ -1297,23 +1356,43 @@
             document.querySelector('footer p').textContent = texts.footerText || defaultTexts.footerText;
         }
 
-        applyTexts(loadTexts());
+        (async () => {
+            const cloudTexts = await loadTextsFromCloud();
+            if (cloudTexts) {
+                applyTexts(cloudTexts);
+            } else {
+                applyTexts(loadTexts());
+            }
+        })();
 
         (async () => {
             try {
                 const bgData = await loadBackground();
                 if (bgData) {
-                    const blob = new Blob([bgData.file], { type: bgData.type === 'image' ? 'image/*' : 'video/*' });
-                    const url = URL.createObjectURL(blob);
-                    if (bgData.type === 'image') {
-                        videoContainer.style.display = 'none';
-                        bgContainer.style.backgroundImage = `url(${url})`;
-                        bgContainer.style.backgroundSize = 'cover';
-                        bgContainer.style.backgroundPosition = 'center';
-                    } else {
-                        bgContainer.style.backgroundImage = 'none';
-                        videoElement.src = url;
-                        videoContainer.style.display = 'block';
+                    if (bgData.dataUrl) {
+                        if (bgData.type === 'image') {
+                            videoContainer.style.display = 'none';
+                            bgContainer.style.backgroundImage = `url(${bgData.dataUrl})`;
+                            bgContainer.style.backgroundSize = 'cover';
+                            bgContainer.style.backgroundPosition = 'center';
+                        } else {
+                            bgContainer.style.backgroundImage = 'none';
+                            videoElement.src = bgData.dataUrl;
+                            videoContainer.style.display = 'block';
+                        }
+                    } else if (bgData.file) {
+                        const blob = new Blob([bgData.file], { type: bgData.type === 'image' ? 'image/*' : 'video/*' });
+                        const url = URL.createObjectURL(blob);
+                        if (bgData.type === 'image') {
+                            videoContainer.style.display = 'none';
+                            bgContainer.style.backgroundImage = `url(${url})`;
+                            bgContainer.style.backgroundSize = 'cover';
+                            bgContainer.style.backgroundPosition = 'center';
+                        } else {
+                            bgContainer.style.backgroundImage = 'none';
+                            videoElement.src = url;
+                            videoContainer.style.display = 'block';
+                        }
                     }
                 } else {
                     if (backgroundType === 'image') {
@@ -1386,6 +1465,22 @@
             localStorage.setItem('siteProjects', JSON.stringify(projects));
         }
 
+        async function loadProjectsFromCloud() {
+            try {
+                const snapshot = await db.ref('siteData/projects').once('value');
+                return snapshot.val() || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function saveProjectsToCloud(projects) {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/projects').set(projects);
+            } catch (e) {}
+        }
+
         function renderProjectCard(project, index) {
             return `
                 <div class="project-card">
@@ -1414,22 +1509,29 @@
             }
         }
 
-        function renderWorksSection() {
-            let projects = localStorage.getItem('siteProjects');
-            if (!projects) {
+        async function renderWorksSection() {
+            let projects = null;
+            const cloudProjects = await loadProjectsFromCloud();
+            if (cloudProjects && Array.isArray(cloudProjects) && cloudProjects.length > 0) {
+                projects = cloudProjects;
+            } else {
+                const localProjects = localStorage.getItem('siteProjects');
+                if (localProjects) {
+                    try {
+                        projects = JSON.parse(localProjects);
+                    } catch (e) {
+                        projects = null;
+                    }
+                }
+            }
+            if (!projects || projects.length === 0) {
                 const defaultProjects = [
                     {title: '品牌重塑项目', description: '为新兴科技公司打造全新的视觉识别系统，从Logo到整体品牌调性的完整设计。', link: '#'},
                     {title: '电商平台设计', description: '用户体验导向的电商界面设计，优化购物流程，提升转化率。', link: '#'},
                     {title: '数据可视化工具', description: '将复杂数据转化为直观易懂的可视化图表，帮助用户快速洞察业务趋势。', link: '#'}
                 ];
                 localStorage.setItem('siteProjects', JSON.stringify(defaultProjects));
-                projects = JSON.stringify(defaultProjects);
-            }
-            
-            try {
-                projects = JSON.parse(projects);
-            } catch (e) {
-                projects = [];
+                projects = defaultProjects;
             }
             
             const container = document.getElementById('projects-container');
@@ -1500,6 +1602,7 @@
                     }));
                     localStorage.setItem('siteProjects', JSON.stringify(projects));
                     renderWorksSection();
+                    saveProjectsToCloud(projects);
                     saveProjectsBtn.textContent = '已保存';
                     setTimeout(function() {
                         saveProjectsBtn.textContent = '保存修改';
@@ -1566,6 +1669,7 @@
 
         loginConfirm.addEventListener('click', () => {
             if (loginPassword.value === DEV_PASSWORD) {
+                isAuthenticated = true;
                 loginModal.classList.remove('show');
                 modalOverlay.classList.add('show');
                 modalTabs.forEach(tab => tab.classList.remove('active'));
@@ -1628,6 +1732,7 @@
             });
             localStorage.setItem('siteTexts', JSON.stringify(texts));
             applyTexts(texts);
+            saveTextsToCloud(texts);
             modalOverlay.classList.remove('show');
         });
 
@@ -1651,32 +1756,32 @@
             const fileType = file.type;
 
             if (fileType.startsWith('image/') || fileType.startsWith('video/')) {
-                file.arrayBuffer().then(buffer => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const dataUrl = event.target.result;
                     const type = fileType.startsWith('image/') ? 'image' : 'video';
                     if (type === 'image') {
                         videoContainer.style.display = 'none';
-                        const blob = new Blob([buffer], { type: fileType });
-                        const url = URL.createObjectURL(blob);
-                        bgContainer.style.backgroundImage = `url(${url})`;
+                        bgContainer.style.backgroundImage = `url(${dataUrl})`;
                         bgContainer.style.backgroundSize = 'cover';
                         bgContainer.style.backgroundPosition = 'center';
                     } else {
                         bgContainer.style.backgroundImage = 'none';
-                        const blob = new Blob([buffer], { type: fileType });
-                        const url = URL.createObjectURL(blob);
-                        videoElement.src = url;
+                        videoElement.src = dataUrl;
                         videoContainer.style.display = 'block';
                         applyVideoMuted(loadVideoMuted());
                     }
-                    saveBackground(buffer, type);
+                    saveBackgroundToCloud(dataUrl, type);
                     updateVideoSoundToggle();
                     modalOverlay.classList.remove('show');
-                });
+                };
+                reader.readAsDataURL(file);
             }
         });
 
         resetBtn.addEventListener('click', () => {
             clearBackground();
+            clearBackgroundFromCloud();
             if (backgroundType === 'image') {
                 videoContainer.style.display = 'none';
                 bgContainer.style.backgroundImage = `url(${imageUrl})`;
@@ -1699,6 +1804,23 @@
                 return saved === 'true';
             }
             return true;
+        }
+
+        async function loadVideoMutedFromCloud() {
+            try {
+                const snapshot = await db.ref('siteData/bgVideoMuted').once('value');
+                const val = snapshot.val();
+                return val !== null ? val : true;
+            } catch (e) {
+                return true;
+            }
+        }
+
+        async function saveVideoMutedToCloud(muted) {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/bgVideoMuted').set(muted);
+            } catch (e) {}
         }
 
         function saveVideoMuted(muted) {
@@ -1730,12 +1852,13 @@
         videoSoundToggle.addEventListener('change', (e) => {
             const muted = !e.target.checked;
             saveVideoMuted(muted);
+            saveVideoMutedToCloud(muted);
             applyVideoMuted(muted);
             updateVideoSoundToggle();
         });
 
-        (() => {
-            const muted = loadVideoMuted();
+        (async () => {
+            const muted = await loadVideoMutedFromCloud();
             videoSoundToggle.checked = !muted;
             applyVideoMuted(muted);
             updateVideoSoundToggle();
@@ -1763,18 +1886,22 @@
             });
         }
 
-        async function saveMusic(buffer) {
+        async function saveMusic(dataUrl) {
             const db = await openMusicDB();
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction(MUSIC_STORE_NAME, 'readwrite');
                 const store = transaction.objectStore(MUSIC_STORE_NAME);
-                store.put({ id: 'bgMusic', data: buffer });
+                store.put({ id: 'bgMusic', dataUrl: dataUrl });
                 transaction.oncomplete = () => resolve();
                 transaction.onerror = () => reject(transaction.error);
             });
         }
 
         async function loadMusic() {
+            const cloudData = await loadMusicFromCloud();
+            if (cloudData && cloudData.dataUrl) {
+                return { dataUrl: cloudData.dataUrl };
+            }
             const db = await openMusicDB();
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction(MUSIC_STORE_NAME, 'readonly');
@@ -1796,22 +1923,60 @@
             });
         }
 
+        async function saveMusicToCloud(dataUrl) {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/bgMusic/dataUrl').set(dataUrl);
+            } catch (e) {}
+        }
+
+        async function loadMusicFromCloud() {
+            try {
+                const snapshot = await db.ref('siteData/bgMusic').once('value');
+                return snapshot.val() || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function clearMusicFromCloud() {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/bgMusic').remove();
+            } catch (e) {}
+        }
+
+        async function saveMusicVolumeToCloud(volume) {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/bgMusic/volume').set(volume);
+            } catch (e) {}
+        }
+
+        async function loadMusicVolumeFromCloud() {
+            try {
+                const snapshot = await db.ref('siteData/bgMusic/volume').once('value');
+                const val = snapshot.val();
+                return val !== null ? val : 50;
+            } catch (e) {
+                return 50;
+            }
+        }
+
         const musicDropZone = document.getElementById('musicDropZone');
         const volumeSlider = document.getElementById('volumeSlider');
         const removeMusicBtn = document.getElementById('removeMusicBtn');
         const tabMusic = document.getElementById('tabMusic');
 
-        function createAudioElement(buffer, volume) {
+        function createAudioElement(src, volume) {
             let audio = document.getElementById('bgMusicAudio');
             if (audio) {
                 audio.pause();
                 audio.remove();
             }
-            const blob = new Blob([buffer], { type: 'audio/mpeg' });
-            const url = URL.createObjectURL(blob);
             audio = document.createElement('audio');
             audio.id = 'bgMusicAudio';
-            audio.src = url;
+            audio.src = src;
             audio.loop = true;
             audio.volume = volume / 100;
             audio.preload = 'auto';
@@ -1851,12 +2016,16 @@
             
             if (!validTypes.includes(fileType) && !fileType.startsWith('audio/')) return;
 
-            file.arrayBuffer().then(buffer => {
-                saveMusic(buffer);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataUrl = event.target.result;
                 const volume = parseInt(volumeSlider.value);
-                const audio = createAudioElement(buffer, volume);
+                saveMusic(dataUrl);
+                saveMusicToCloud(dataUrl);
+                const audio = createAudioElement(dataUrl, volume);
                 tryPlayAudio(audio);
-            });
+            };
+            reader.readAsDataURL(file);
         });
 
         volumeSlider.addEventListener('input', (e) => {
@@ -1867,6 +2036,7 @@
                 audio.volume = volume / 100;
             }
             localStorage.setItem('bgMusicVolume', volume.toString());
+            saveMusicVolumeToCloud(volume);
         });
 
         removeMusicBtn.addEventListener('click', () => {
@@ -1876,6 +2046,7 @@
                 audio.remove();
             }
             clearMusic().catch(() => {});
+            clearMusicFromCloud().catch(() => {});
             localStorage.removeItem('bgMusicVolume');
             volumeSlider.value = 50;
         });
@@ -1888,9 +2059,10 @@
 
             try {
                 const musicData = await loadMusic();
-                if (musicData && musicData.data) {
+                if (musicData && (musicData.dataUrl || musicData.data)) {
+                    const src = musicData.dataUrl || musicData.data;
                     const volume = parseInt(savedVolume || 50);
-                    const audio = createAudioElement(musicData.data, volume);
+                    const audio = createAudioElement(src, volume);
                     tryPlayAudio(audio);
                 }
             } catch (e) {}
@@ -1907,7 +2079,27 @@
         let tempMediaArray = [];
         let inMemoryMedia = [];
 
+        async function loadMediaFromCloud() {
+            try {
+                const snapshot = await db.ref('siteData/media').once('value');
+                return snapshot.val() || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function saveMediaToCloud(media) {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/media').set(media);
+            } catch (e) {}
+        }
+
         async function loadMediaFromDB() {
+            const cloudData = await loadMediaFromCloud();
+            if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
+                return cloudData;
+            }
             try {
                 const db = await openMusicDB();
                 return new Promise((resolve) => {
@@ -1938,6 +2130,11 @@
             } catch (e) {
                 inMemoryMedia = media;
             }
+        }
+
+        async function saveMediaToFirebase(media) {
+            await saveMediaToDB(media);
+            await saveMediaToCloud(media);
         }
 
         function clearLocalStorageMedia() {
@@ -2041,7 +2238,7 @@
         });
 
         saveMediaBtn.addEventListener('click', async () => {
-            await saveMediaToDB(tempMediaArray);
+            await saveMediaToFirebase(tempMediaArray);
             await renderMediaSection();
             saveMediaBtn.textContent = '已保存';
             setTimeout(() => {
@@ -2108,6 +2305,86 @@
             clearLocalStorageMedia();
             await renderMediaSection();
         })();
+
+        (async () => {
+            const cloudData = await db.ref('siteData/texts').once('value');
+            if (!cloudData.val()) {
+                const localTexts = localStorage.getItem('siteTexts');
+                if (localTexts) {
+                    try {
+                        const texts = JSON.parse(localTexts);
+                        await db.ref('siteData/texts').set(texts);
+                    } catch (e) {}
+                }
+            }
+        })();
+
+        (async () => {
+            const cloudData = await db.ref('siteData/projects').once('value');
+            if (!cloudData.val()) {
+                const localProjects = localStorage.getItem('siteProjects');
+                if (localProjects) {
+                    try {
+                        const projects = JSON.parse(localProjects);
+                        if (projects && projects.length > 0) {
+                            await db.ref('siteData/projects').set(projects);
+                        }
+                    } catch (e) {}
+                }
+            }
+        })();
+
+        db.ref('siteData').on('value', async (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+            if (data.texts) {
+                applyTexts(data.texts);
+            }
+            if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
+                const container = document.getElementById('projects-container');
+                const worksSection = document.getElementById('works');
+                if (container && worksSection) {
+                    if (data.projects.length === 0) {
+                        worksSection.classList.add('hidden');
+                    } else {
+                        worksSection.classList.remove('hidden');
+                        container.innerHTML = data.projects.map(project => `
+                            <div class="work-card animate-element">
+                                <h3>${project.title || '未命名项目'}</h3>
+                                <p>${project.description || '暂无描述'}</p>
+                                <a href="${project.link || '#'}">查看详情</a>
+                            </div>
+                        `).join('');
+                    }
+                }
+            }
+            if (data.media && Array.isArray(data.media) && data.media.length > 0) {
+                const container = document.getElementById('media-container');
+                const mediaSection = document.getElementById('media');
+                if (container && mediaSection) {
+                    mediaSection.classList.remove('hidden');
+                    container.innerHTML = data.media.map((item, index) => `
+                        <div class="media-card" data-index="${index}" data-type="${item.type}">
+                            ${item.type === 'image'
+                                ? `<img src="${item.dataUrl}" alt="">`
+                                : `<video src="${item.dataUrl}" muted playsinline controls preload="metadata"></video>`
+                            }
+                        </div>
+                    `).join('');
+                }
+            } else {
+                const mediaSection = document.getElementById('media');
+                if (mediaSection) {
+                    mediaSection.classList.add('hidden');
+                }
+            }
+            if (data.bgVideoMuted !== undefined) {
+                const videoElement = document.querySelector('#videoContainer video');
+                if (videoElement) {
+                    videoElement.muted = data.bgVideoMuted;
+                }
+            }
+        });
     </script>
 </body>
 </html>
