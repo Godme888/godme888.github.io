@@ -1120,13 +1120,13 @@
 </head>
 <body>
     <div class="bg-container" id="bgContainer"></div>
-    <div class="video-container" id="videoContainer">
-        <video id="bgVideo" autoplay loop muted playsinline preload="auto" disableRemotePlayback>
+    <div class="video-container" id="videoContainer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -999; overflow: hidden; pointer-events: none;">
+        <video id="bgVideo" autoplay loop muted playsinline preload="auto" disableRemotePlayback style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -999 !important; pointer-events: none; user-select: none; -webkit-user-select: none; -webkit-transform: translateZ(0); transform: translateZ(0);">
             <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-light-particles-loop-24979-large.mp4" type="video/mp4">
         </video>
     </div>
-    <div class="video-overlay"></div>
-    <nav id="navbar">
+    <div class="video-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 0; pointer-events: none;"></div>
+    <nav id="navbar" style="position: relative; z-index: 1;">
         <div class="logo">黑红8</div>
         <div class="nav-links">
             <a href="#about">关于</a>
@@ -1135,13 +1135,13 @@
         </div>
     </nav>
 
-    <section class="hero">
+    <section class="hero" style="position: relative; z-index: 1;">
         <h1>创造有意义的数字体验</h1>
         <p>我是林一，一个专注于简约与细节的创作者</p>
         <a href="#works" class="btn">查看作品</a>
     </section>
 
-    <section id="about" class="about-section">
+    <section id="about" class="about-section" style="position: relative; z-index: 1;">
         <div class="section-content about-content animate-element">
             <h2>关于我</h2>
             <p>我相信设计的力量在于简约。每一个像素、每一条线条都应该有其存在的意义。</p>
@@ -1149,21 +1149,21 @@
         </div>
     </section>
 
-    <section id="works" class="works-section">
+    <section id="works" class="works-section" style="position: relative; z-index: 1;">
         <div class="section-content works-grid">
             <h2>精选项目</h2>
             <div id="projects-container"></div>
         </div>
     </section>
 
-    <section id="media" class="media-section">
+    <section id="media" class="media-section" style="position: relative; z-index: 1;">
         <div class="section-content media-grid">
             <h2>视觉展示</h2>
             <div id="media-container"></div>
         </div>
     </section>
 
-    <footer>
+    <footer style="position: relative; z-index: 1;">
         <p>© 2026 林一. 简约至极。</p>
     </footer>
 
@@ -2701,7 +2701,7 @@
                         videoElement.src = data.background.url;
                         videoElement.load();
                         videoContainer.style.display = 'block';
-                        videoElement.play().catch(() => {});
+                        initVideoPlayback(videoElement);
                     }
                 } else if (data.background.dataUrl) {
                     if (data.background.type === 'image') {
