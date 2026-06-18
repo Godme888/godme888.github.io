@@ -1745,7 +1745,29 @@
             dropZone.classList.remove('dragover');
         });
 
-        dropZone.addEventListener('drop', (e) => {
+        function compressImageToDataUrl(file, maxWidth, quality) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = () => resolve(null);
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        dropZone.addEventListener('drop', async (e) => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
 
@@ -1755,23 +1777,33 @@
             const file = files[0];
             const fileType = file.type;
 
-            if (fileType.startsWith('image/') || fileType.startsWith('video/')) {
+            if (fileType.startsWith('image/')) {
+                const dataUrl = await compressImageToDataUrl(file, 1920, 0.7);
+                if (!dataUrl) return;
+                videoContainer.style.display = 'none';
+                bgContainer.style.backgroundImage = `url(${dataUrl})`;
+                bgContainer.style.backgroundSize = 'cover';
+                bgContainer.style.backgroundPosition = 'center';
+                if (isAuthenticated) {
+                    saveBackgroundToCloud(dataUrl, 'image');
+                }
+                updateVideoSoundToggle();
+                modalOverlay.classList.remove('show');
+            } else if (fileType.startsWith('video/')) {
+                if (file.size > 8 * 1024 * 1024) {
+                    modalOverlay.classList.remove('show');
+                    return;
+                }
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const dataUrl = event.target.result;
-                    const type = fileType.startsWith('image/') ? 'image' : 'video';
-                    if (type === 'image') {
-                        videoContainer.style.display = 'none';
-                        bgContainer.style.backgroundImage = `url(${dataUrl})`;
-                        bgContainer.style.backgroundSize = 'cover';
-                        bgContainer.style.backgroundPosition = 'center';
-                    } else {
-                        bgContainer.style.backgroundImage = 'none';
-                        videoElement.src = dataUrl;
-                        videoContainer.style.display = 'block';
-                        applyVideoMuted(loadVideoMuted());
+                    bgContainer.style.backgroundImage = 'none';
+                    videoElement.src = dataUrl;
+                    videoContainer.style.display = 'block';
+                    applyVideoMuted(loadVideoMuted());
+                    if (isAuthenticated) {
+                        saveBackgroundToCloud(dataUrl, 'video');
                     }
-                    saveBackgroundToCloud(dataUrl, type);
                     updateVideoSoundToggle();
                     modalOverlay.classList.remove('show');
                 };
@@ -1926,7 +1958,8 @@
         async function saveMusicToCloud(dataUrl) {
             if (!isAuthenticated) return;
             try {
-                await db.ref('siteData/bgMusic/dataUrl').set(dataUrl);
+                const currentVolume = parseInt(document.getElementById('volumeSlider')?.value || 50);
+                await db.ref('siteData/bgMusic').set({ dataUrl: dataUrl, volume: currentVolume });
             } catch (e) {}
         }
 
@@ -2015,13 +2048,16 @@
             const validTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/webm'];
             
             if (!validTypes.includes(fileType) && !fileType.startsWith('audio/')) return;
+            if (file.size > 5 * 1024 * 1024) return;
 
             const reader = new FileReader();
             reader.onload = (event) => {
                 const dataUrl = event.target.result;
                 const volume = parseInt(volumeSlider.value);
                 saveMusic(dataUrl);
-                saveMusicToCloud(dataUrl);
+                if (isAuthenticated) {
+                    saveMusicToCloud(dataUrl);
+                }
                 const audio = createAudioElement(dataUrl, volume);
                 tryPlayAudio(audio);
             };
@@ -2382,6 +2418,44 @@
                 const videoElement = document.querySelector('#videoContainer video');
                 if (videoElement) {
                     videoElement.muted = data.bgVideoMuted;
+                }
+            }
+            if (data.background) {
+                const bgContainer = document.getElementById('bgContainer');
+                const videoContainer = document.getElementById('videoContainer');
+                const videoElement = document.querySelector('#videoContainer video');
+                if (data.background.type === 'image' && data.background.dataUrl) {
+                    videoContainer.style.display = 'none';
+                    bgContainer.style.backgroundImage = `url(${data.background.dataUrl})`;
+                    bgContainer.style.backgroundSize = 'cover';
+                    bgContainer.style.backgroundPosition = 'center';
+                } else if (data.background.type === 'video' && data.background.dataUrl) {
+                    bgContainer.style.backgroundImage = 'none';
+                    videoElement.src = data.background.dataUrl;
+                    videoContainer.style.display = 'block';
+                }
+            }
+            if (data.bgMusic && data.bgMusic.dataUrl) {
+                const volume = data.bgMusic.volume !== undefined ? data.bgMusic.volume : 50;
+                let audio = document.getElementById('bgMusicAudio');
+                if (!audio || audio.src !== data.bgMusic.dataUrl) {
+                    if (audio) {
+                        audio.pause();
+                        audio.remove();
+                    }
+                    audio = document.createElement('audio');
+                    audio.id = 'bgMusicAudio';
+                    audio.src = data.bgMusic.dataUrl;
+                    audio.loop = true;
+                    audio.volume = volume / 100;
+                    audio.preload = 'auto';
+                    document.body.appendChild(audio);
+                    audio.play().catch(() => {
+                        document.addEventListener('click', function playOnClick() {
+                            audio.play().catch(() => {});
+                            document.removeEventListener('click', playOnClick);
+                        }, { once: true });
+                    });
                 }
             }
         });
