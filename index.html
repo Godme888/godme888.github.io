@@ -225,10 +225,13 @@
             overflow: hidden;
             transition: all 0.3s ease;
             cursor: pointer;
+            will-change: transform, box-shadow;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         .work-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-8px) translateZ(0);
             box-shadow: 0 20px 40px rgba(212, 175, 55, 0.15);
         }
 
@@ -342,12 +345,19 @@
 
             .work-card {
                 flex-direction: column;
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
             }
 
             .work-card-media {
                 width: 100%;
                 height: 160px;
                 min-height: 160px;
+            }
+
+            .modal {
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
             }
 
             section {
@@ -374,6 +384,8 @@
 
         .modal {
             background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 16px;
             padding: 40px;
             max-width: 540px;
@@ -384,6 +396,9 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+            will-change: opacity;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         .modal-overlay.show .modal {
@@ -443,10 +458,45 @@
         }
 
         .drop-hint {
-            font-size: 0.8rem;
+            font-size: 12px;
             color: #666;
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .url-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .url-input-row input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .url-input-row input::placeholder {
+            color: #666;
+        }
+
+        .url-input-row .modal-btn {
+            padding: 10px 20px;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.2s ease;
+        }
+
+        .url-input-row .modal-btn:hover {
+            opacity: 0.8;
         }
 
         .video-sound-control {
@@ -954,8 +1004,7 @@
 <body>
     <div class="bg-container" id="bgContainer"></div>
     <div class="video-container" id="videoContainer">
-        <video id="bgVideo" autoplay muted loop playsinline preload="auto" disableRemotePlayback style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; z-index: -1 !important; pointer-events: none !important; -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden;">
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-light-particles-loop-24979-large.mp4" type="video/mp4">
+        <video id="bgVideo" muted loop playsinline preload="metadata" disableRemotePlayback poster="" style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; z-index: -1 !important; pointer-events: none !important; -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden;">
         </video>
     </div>
     <div id="bgOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 0; pointer-events: none;"></div>
@@ -1002,11 +1051,15 @@
                 <span class="modal-tab" data-tab="music">音乐</span>
             </div>
             <div class="tab-content" id="tabBackground">
-                <h3>拖入文件更换背景</h3>
+                <h3>更换背景</h3>
                 <div class="drop-zone" id="dropZone">
                     <div class="drop-zone-text">将图片或视频拖到这里</div>
                 </div>
                 <div class="drop-hint">支持 JPG、PNG、GIF、MP4、WebM</div>
+                <div class="url-input-row">
+                    <input type="text" id="bgUrlInput" placeholder="输入图片或视频链接">
+                    <button class="modal-btn" id="applyBgUrlBtn">应用</button>
+                </div>
                 <div class="video-sound-control">
                     <label>视频声音</label>
                     <label class="toggle-switch">
@@ -1148,6 +1201,8 @@
 
         function setupAutoPlay(video) {
             let userInteractionHandler = null;
+            let waitingTimeout = null;
+            let wasWaiting = false;
 
             function tryPlay() {
                 video.play().catch(() => {
@@ -1167,19 +1222,86 @@
             video.addEventListener('canplay', tryPlay);
 
             video.addEventListener('visibilitychange', function() {
-                if (!document.hidden && video.paused) {
+                if (!document.hidden && video.paused && video.src) {
                     video.play().catch(() => {});
                 }
             });
 
             video.addEventListener('ended', function() {
-                video.play().catch(() => {});
+                if (video.src) {
+                    video.play().catch(() => {});
+                }
             });
 
-            tryPlay();
+            video.addEventListener('waiting', function() {
+                wasWaiting = true;
+                waitingTimeout = setTimeout(function() {
+                    if (video.playbackRate > 0.8) {
+                        video.playbackRate = 0.8;
+                    }
+                }, 3000);
+            });
+
+            video.addEventListener('stalled', function() {
+                wasWaiting = true;
+                waitingTimeout = setTimeout(function() {
+                    if (video.playbackRate > 0.8) {
+                        video.playbackRate = 0.8;
+                    }
+                }, 3000);
+            });
+
+            video.addEventListener('playing', function() {
+                if (waitingTimeout) {
+                    clearTimeout(waitingTimeout);
+                    waitingTimeout = null;
+                }
+                if (wasWaiting && video.playbackRate < 1) {
+                    video.playbackRate = 1;
+                }
+                wasWaiting = false;
+            });
+        }
+
+        function initBackgroundVideo() {
+            const isMobile = window.innerWidth <= 768;
+            const cpuCores = navigator.hardwareConcurrency || 4;
+
+            if (cpuCores <= 2) {
+                videoElement.playbackRate = 0.8;
+            } else if (cpuCores <= 4) {
+                videoElement.playbackRate = 0.9;
+            }
+
+            function delayedLoad() {
+                videoElement.src = videoUrl;
+                videoElement.load();
+                if (!isMobile) {
+                    videoElement.play().catch(() => {});
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(delayedLoad, 300);
+                });
+            } else {
+                setTimeout(delayedLoad, 300);
+            }
+
+            if (isMobile) {
+                const mobilePlayHandler = function() {
+                    videoElement.play().catch(() => {});
+                    document.removeEventListener('touchstart', mobilePlayHandler);
+                    document.removeEventListener('click', mobilePlayHandler);
+                };
+                document.addEventListener('touchstart', mobilePlayHandler, { once: true });
+                document.addEventListener('click', mobilePlayHandler, { once: true });
+            }
         }
 
         setupAutoPlay(videoElement);
+        initBackgroundVideo();
 
         const DB_NAME = 'BackgroundDB';
         const DB_VERSION = 1;
@@ -1214,6 +1336,13 @@
             if (!isAuthenticated) return;
             try {
                 await db.ref('siteData/background').set({ dataUrl: dataUrl, type: type });
+            } catch (e) {}
+        }
+
+        async function saveBackgroundUrlToCloud(url, type) {
+            if (!isAuthenticated) return;
+            try {
+                await db.ref('siteData/background').set({ url: url, type: type });
             } catch (e) {}
         }
 
@@ -1833,26 +1962,67 @@
             const fileType = file.type;
 
             if (fileType.startsWith('image/') || fileType.startsWith('video/')) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const dataUrl = event.target.result;
-                    const type = fileType.startsWith('image/') ? 'image' : 'video';
-                    if (type === 'image') {
-                        videoContainer.style.display = 'none';
-                        bgContainer.style.backgroundImage = `url(${dataUrl})`;
-                        bgContainer.style.backgroundSize = 'cover';
-                        bgContainer.style.backgroundPosition = 'center';
-                    } else {
+                if (fileType.startsWith('video/') && file.size > 8 * 1024 * 1024) {
+                    dropZone.style.borderColor = '#ff4444';
+                    setTimeout(() => {
+                        dropZone.style.borderColor = '';
+                    }, 1000);
+                    return;
+                }
+
+                if (fileType.startsWith('image/')) {
+                    compressImageToDataUrl(file, 1920, 0.8).then(dataUrl => {
+                        if (dataUrl) {
+                            videoContainer.style.display = 'none';
+                            bgContainer.style.backgroundImage = `url(${dataUrl})`;
+                            bgContainer.style.backgroundSize = 'cover';
+                            bgContainer.style.backgroundPosition = 'center';
+                            saveBackgroundToCloud(dataUrl, 'image');
+                            updateVideoSoundToggle();
+                            modalOverlay.classList.remove('show');
+                        }
+                    });
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const dataUrl = event.target.result;
                         bgContainer.style.backgroundImage = 'none';
                         videoElement.src = dataUrl;
                         videoContainer.style.display = 'block';
                         applyVideoMuted(loadVideoMuted());
-                    }
-                    saveBackgroundToCloud(dataUrl, type);
-                    updateVideoSoundToggle();
-                    modalOverlay.classList.remove('show');
-                };
-                reader.readAsDataURL(file);
+                        saveBackgroundToCloud(dataUrl, 'video');
+                        updateVideoSoundToggle();
+                        modalOverlay.classList.remove('show');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        const bgUrlInput = document.getElementById('bgUrlInput');
+        const applyBgUrlBtn = document.getElementById('applyBgUrlBtn');
+
+        applyBgUrlBtn.addEventListener('click', () => {
+            const url = bgUrlInput.value.trim();
+            if (!url) return;
+
+            const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
+            const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
+
+            if (isImage) {
+                videoContainer.style.display = 'none';
+                bgContainer.style.backgroundImage = `url(${url})`;
+                bgContainer.style.backgroundSize = 'cover';
+                bgContainer.style.backgroundPosition = 'center';
+                saveBackgroundUrlToCloud(url, 'image');
+                updateVideoSoundToggle();
+            } else if (isVideo) {
+                bgContainer.style.backgroundImage = 'none';
+                videoElement.src = url;
+                videoContainer.style.display = 'block';
+                applyVideoMuted(loadVideoMuted());
+                saveBackgroundUrlToCloud(url, 'video');
+                updateVideoSoundToggle();
             }
         });
 
@@ -2173,21 +2343,29 @@
             }
         })();
 
-        db.ref('siteData').on('value', async (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-            if (data.texts) {
-                applyTexts(data.texts);
+        let previousTexts = null;
+        let previousProjects = null;
+
+        db.ref('siteData/texts').on('value', (snapshot) => {
+            const texts = snapshot.val();
+            if (texts && JSON.stringify(texts) !== JSON.stringify(previousTexts)) {
+                previousTexts = texts;
+                applyTexts(texts);
             }
-            if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
+        });
+
+        db.ref('siteData/projects').on('value', (snapshot) => {
+            const projects = snapshot.val();
+            if (projects && Array.isArray(projects) && JSON.stringify(projects) !== JSON.stringify(previousProjects)) {
+                previousProjects = projects;
                 const container = document.getElementById('projects-container');
                 const worksSection = document.getElementById('works');
                 if (container && worksSection) {
-                    if (data.projects.length === 0) {
+                    if (projects.length === 0) {
                         worksSection.classList.add('hidden');
                     } else {
                         worksSection.classList.remove('hidden');
-                        container.innerHTML = data.projects.map(project => {
+                        container.innerHTML = projects.map(project => {
                             let mediaHtml = '<div class="work-card-media"><span class="placeholder-icon">▣</span></div>';
                             if (project.media && project.media.type === 'image' && project.media.dataUrl) {
                                 mediaHtml = `<div class="work-card-media"><img src="${project.media.dataUrl}" alt=""></div>`;
@@ -2212,10 +2390,14 @@
                     }
                 }
             }
-            if (data.bgVideoMuted !== undefined) {
+        });
+
+        db.ref('siteData/bgVideoMuted').on('value', (snapshot) => {
+            const muted = snapshot.val();
+            if (muted !== undefined) {
                 const videoElement = document.querySelector('#videoContainer video');
                 if (videoElement) {
-                    videoElement.muted = data.bgVideoMuted;
+                    videoElement.muted = muted;
                 }
             }
         });
