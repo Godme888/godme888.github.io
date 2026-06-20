@@ -21,6 +21,7 @@
             line-height: 1.6;
             overflow-x: hidden;
             position: relative;
+            background-color: #0a0a0a;
         }
 
         .video-container {
@@ -214,9 +215,14 @@
         }
 
         .work-card {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 1.5rem;
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
             transition: all 0.3s ease;
             cursor: pointer;
         }
@@ -226,20 +232,51 @@
             box-shadow: 0 20px 40px rgba(212, 175, 55, 0.15);
         }
 
-        .work-card h3 {
+        .work-card-media {
+            width: 120px;
+            min-height: 120px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .work-card-media img,
+        .work-card-media video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .work-card-media .placeholder-icon {
+            color: #555;
+            font-size: 24px;
+        }
+
+        .work-card-content {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .work-card-content h3 {
             font-size: 1.2rem;
             font-weight: 400;
             margin-bottom: 0.75rem;
         }
 
-        .work-card p {
+        .work-card-content p {
             font-size: 0.95rem;
             color: rgba(255, 255, 255, 0.6);
             margin-bottom: 1rem;
             font-weight: 300;
         }
 
-        .work-card a {
+        .work-card-content a {
             color: #d4af37;
             text-decoration: none;
             font-size: 0.9rem;
@@ -248,7 +285,7 @@
             transition: opacity 0.3s ease;
         }
 
-        .work-card a:hover {
+        .work-card-content a:hover {
             opacity: 0.7;
         }
 
@@ -301,6 +338,16 @@
 
             .works-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .work-card {
+                flex-direction: column;
+            }
+
+            .work-card-media {
+                width: 100%;
+                height: 160px;
+                min-height: 160px;
             }
 
             section {
@@ -742,6 +789,22 @@
             border-color: #d4af37;
         }
 
+        .project-media-section {
+            margin-top: 16px;
+        }
+
+        .project-media-section label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .project-media-section input {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
         .modal-btn.add-project {
             background: transparent;
             color: #ffffff;
@@ -865,160 +928,6 @@
             display: none;
         }
 
-        .media-section {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            position: relative;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-        }
-
-        .media-section.hidden {
-            display: none !important;
-        }
-
-        .media-section h2 {
-            color: #ffffff !important;
-            font-size: 24px;
-            margin-bottom: 24px;
-        }
-
-        .media-section .media-grid {
-            max-width: 100%;
-        }
-
-        .media-section #media-container {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-
-        .media-card {
-            background: rgba(255,255,255,0.04);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px;
-            padding: 0;
-            aspect-ratio: 16/9;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .media-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-        }
-
-        .media-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .media-card video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .lightbox-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 3000;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .lightbox-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
-
-        .lightbox-overlay img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-        }
-
-        @media (max-width: 1024px) {
-            .media-section #media-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .media-section #media-container {
-                grid-template-columns: 1fr;
-            }
-            .media-section .media-grid {
-                margin-left: 0;
-            }
-            .media-card {
-                backdrop-filter: none;
-                -webkit-backdrop-filter: none;
-            }
-        }
-
-        .media-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 16px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .media-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 6px;
-        }
-
-        .media-item-thumb {
-            width: 40px;
-            height: 40px;
-            border-radius: 4px;
-            object-fit: cover;
-            background: #2a2a2a;
-        }
-
-        .media-item-type {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .media-item-delete {
-            margin-left: auto;
-            width: 24px;
-            height: 24px;
-            border: none;
-            background: transparent;
-            color: #ffffff;
-            font-size: 16px;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .media-item-delete:hover {
-            color: #ff4444;
-        }
-
         @media (max-width: 768px) {
             #bgVideo {
                 position: fixed !important;
@@ -1045,7 +954,7 @@
 <body>
     <div class="bg-container" id="bgContainer"></div>
     <div class="video-container" id="videoContainer">
-        <video id="bgVideo" autoplay muted loop playsinline preload="auto" disableRemotePlayback style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; z-index: -1 !important; pointer-events: none !important;">
+        <video id="bgVideo" autoplay muted loop playsinline preload="auto" disableRemotePlayback style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; z-index: -1 !important; pointer-events: none !important; -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden;">
             <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-light-particles-loop-24979-large.mp4" type="video/mp4">
         </video>
     </div>
@@ -1080,13 +989,6 @@
         </div>
     </section>
 
-    <section id="media" class="media-section">
-        <div class="section-content media-grid">
-            <h2>视觉展示</h2>
-            <div id="media-container"></div>
-        </div>
-    </section>
-
     <footer>
         <p>© 2026 Godme. 简约至极。</p>
     </footer>
@@ -1098,7 +1000,6 @@
                 <span class="modal-tab" data-tab="text">文字</span>
                 <span class="modal-tab" data-tab="projects">项目</span>
                 <span class="modal-tab" data-tab="music">音乐</span>
-                <span class="modal-tab" data-tab="media">展示</span>
             </div>
             <div class="tab-content" id="tabBackground">
                 <h3>拖入文件更换背景</h3>
@@ -1170,17 +1071,6 @@
                 </div>
                 <button class="modal-btn close" id="removeMusicBtn">移除音乐</button>
             </div>
-            <div class="tab-content" id="tabMedia" style="display:none;">
-                <h3>视觉展示管理</h3>
-                <div class="drop-zone" id="mediaDropZone" style="height:120px;">
-                    <div class="drop-zone-text">将图片或视频拖到这里（支持JPG/PNG/GIF/MP4/WebM）</div>
-                </div>
-                <div class="media-list" id="mediaList"></div>
-                <div class="modal-buttons">
-                    <button class="modal-btn close" id="closeBtn4">关闭</button>
-                    <button class="modal-btn reset" id="saveMediaBtn">保存修改</button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -1193,10 +1083,6 @@
                 <button class="modal-btn close" id="loginCancel">取消</button>
             </div>
         </div>
-    </div>
-
-    <div class="lightbox-overlay" id="lightboxOverlay">
-        <img id="lightboxImg" src="" alt="">
     </div>
 
     <script>
@@ -1373,6 +1259,82 @@
             });
         }
 
+        let currentBgData = null;
+
+        function renderBackground(bgData) {
+            if (!bgData) return;
+            
+            currentBgData = bgData;
+            
+            if (bgData.type === 'image') {
+                const src = bgData.url || bgData.dataUrl;
+                if (src) {
+                    document.body.style.backgroundImage = `url(${src})`;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    document.body.style.backgroundRepeat = 'no-repeat';
+                    document.body.style.backgroundAttachment = 'fixed';
+                    videoContainer.style.display = 'none';
+                    bgContainer.style.display = 'none';
+                }
+            } else if (bgData.type === 'video') {
+                const src = bgData.url || bgData.dataUrl;
+                if (src) {
+                    document.body.style.backgroundImage = 'none';
+                    bgContainer.style.display = 'none';
+                    videoContainer.style.display = 'block';
+                    bgVideo.src = src;
+                    bgVideo.load();
+                    bgVideo.play().catch(() => {});
+                }
+            }
+        }
+
+        function renderDefaultBackground() {
+            if (currentBgData) {
+                renderBackground(currentBgData);
+                return;
+            }
+            
+            if (backgroundType === 'image') {
+                document.body.style.backgroundImage = `url(${imageUrl})`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundRepeat = 'no-repeat';
+                document.body.style.backgroundAttachment = 'fixed';
+                videoContainer.style.display = 'none';
+                bgContainer.style.display = 'none';
+            } else {
+                document.body.style.backgroundImage = 'none';
+                bgContainer.style.display = 'none';
+                videoContainer.style.display = 'block';
+                bgVideo.play().catch(() => {});
+            }
+        }
+
+        (async () => {
+            try {
+                const snapshot = await db.ref('siteData/background').once('value');
+                const bgData = snapshot.val();
+                if (bgData && (bgData.type === 'image' || bgData.type === 'video') && (bgData.url || bgData.dataUrl)) {
+                    renderBackground(bgData);
+                } else {
+                    renderDefaultBackground();
+                }
+            } catch (e) {
+                renderDefaultBackground();
+            }
+        })();
+
+        db.ref('siteData/background').on('value', (snapshot) => {
+            try {
+                const bgData = snapshot.val();
+                if (bgData && (bgData.type === 'image' || bgData.type === 'video') && (bgData.url || bgData.dataUrl)) {
+                    renderBackground(bgData);
+                }
+            } catch (e) {}
+        });
+
         const defaultTexts = {
             siteName: '黑红8',
             heroTitle: '创造有意义的数字体验',
@@ -1429,58 +1391,6 @@
                 applyTexts(cloudTexts);
             } else {
                 applyTexts(loadTexts());
-            }
-        })();
-
-        (async () => {
-            try {
-                const bgData = await loadBackground();
-                if (bgData) {
-                    if (bgData.dataUrl) {
-                        if (bgData.type === 'image') {
-                            videoContainer.style.display = 'none';
-                            bgContainer.style.backgroundImage = `url(${bgData.dataUrl})`;
-                            bgContainer.style.backgroundSize = 'cover';
-                            bgContainer.style.backgroundPosition = 'center';
-                        } else {
-                            bgContainer.style.backgroundImage = 'none';
-                            videoElement.src = bgData.dataUrl;
-                            videoContainer.style.display = 'block';
-                            videoElement.load();
-                            videoElement.play().catch(() => {});
-                        }
-                    } else if (bgData.file) {
-                        const blob = new Blob([bgData.file], { type: bgData.type === 'image' ? 'image/*' : 'video/*' });
-                        const url = URL.createObjectURL(blob);
-                        if (bgData.type === 'image') {
-                            videoContainer.style.display = 'none';
-                            bgContainer.style.backgroundImage = `url(${url})`;
-                            bgContainer.style.backgroundSize = 'cover';
-                            bgContainer.style.backgroundPosition = 'center';
-                        } else {
-                            bgContainer.style.backgroundImage = 'none';
-                            videoElement.src = url;
-                            videoContainer.style.display = 'block';
-                            videoElement.load();
-                            videoElement.play().catch(() => {});
-                        }
-                    }
-                } else {
-                    if (backgroundType === 'image') {
-                        videoContainer.style.display = 'none';
-                        bgContainer.style.backgroundImage = `url(${imageUrl})`;
-                    } else {
-                        bgContainer.style.backgroundImage = 'none';
-                        videoElement.play().catch(() => {});
-                    }
-                }
-            } catch (e) {
-                if (backgroundType === 'image') {
-                    videoContainer.style.display = 'none';
-                    bgContainer.style.backgroundImage = `url(${imageUrl})`;
-                } else {
-                    bgContainer.style.backgroundImage = 'none';
-                }
             }
         })();
 
@@ -1554,12 +1464,29 @@
         }
 
         function renderProjectCard(project, index) {
+            const mediaType = project.media ? project.media.type : 'none';
+            const mediaUrl = project.media ? (project.media.url || project.media.dataUrl || '') : '';
+            const mediaPreview = project.media && project.media.type === 'image' 
+                ? `<img src="${project.media.url || project.media.dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">`
+                : project.media && project.media.type === 'video'
+                ? `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#2a2a2a;border-radius:4px;color:#888;font-size:12px;">视频</div>`
+                : '';
             return `
                 <div class="project-card">
                     <button class="delete-btn" data-index="${index}">×</button>
                     <input type="text" class="project-title" placeholder="项目标题" value="${project.title || ''}">
                     <textarea class="project-description" placeholder="项目描述">${project.description || ''}</textarea>
                     <input type="text" class="project-link" placeholder="详情链接，如 https://..." value="${project.link || ''}">
+                    <div class="project-media-section">
+                        <label>项目媒体</label>
+                        <div class="project-media-dropzone" data-index="${index}" style="height:80px;border:1px dashed rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;">
+                            ${mediaPreview || '<span style="color:#888;font-size:12px;">拖入图片或视频</span>'}
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <input type="text" class="project-media-url" data-index="${index}" placeholder="粘贴图片/视频链接" value="${mediaUrl}" style="flex:1;">
+                            <button class="project-media-apply-btn" data-index="${index}" style="padding:6px 12px;background:rgba(212,175,55,0.2);border:1px solid rgba(212,175,55,0.3);border-radius:4px;color:#d4af37;cursor:pointer;font-size:12px;">应用</button>
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -1598,9 +1525,9 @@
             }
             if (!projects || projects.length === 0) {
                 const defaultProjects = [
-                    {title: '品牌重塑项目', description: '为新兴科技公司打造全新的视觉识别系统，从Logo到整体品牌调性的完整设计。', link: '#'},
-                    {title: '电商平台设计', description: '用户体验导向的电商界面设计，优化购物流程，提升转化率。', link: '#'},
-                    {title: '数据可视化工具', description: '将复杂数据转化为直观易懂的可视化图表，帮助用户快速洞察业务趋势。', link: '#'}
+                    {title: '品牌重塑项目', description: '为新兴科技公司打造全新的视觉识别系统，从Logo到整体品牌调性的完整设计。', link: '#', media: null},
+                    {title: '电商平台设计', description: '用户体验导向的电商界面设计，优化购物流程，提升转化率。', link: '#', media: null},
+                    {title: '数据可视化工具', description: '将复杂数据转化为直观易懂的可视化图表，帮助用户快速洞察业务趋势。', link: '#', media: null}
                 ];
                 localStorage.setItem('siteProjects', JSON.stringify(defaultProjects));
                 projects = defaultProjects;
@@ -1620,13 +1547,28 @@
             
             worksSection.classList.remove('hidden');
             
-            container.innerHTML = projects.map(project => `
+            container.innerHTML = projects.map(project => {
+                let mediaHtml = '<div class="work-card-media"><span class="placeholder-icon">▣</span></div>';
+                if (project.media && project.media.type === 'image' && project.media.dataUrl) {
+                    mediaHtml = `<div class="work-card-media"><img src="${project.media.dataUrl}" alt=""></div>`;
+                } else if (project.media && project.media.type === 'image' && project.media.url) {
+                    mediaHtml = `<div class="work-card-media"><img src="${project.media.url}" alt=""></div>`;
+                } else if (project.media && project.media.type === 'video' && project.media.dataUrl) {
+                    mediaHtml = `<div class="work-card-media"><video src="${project.media.dataUrl}" muted loop playsinline autoplay></video></div>`;
+                } else if (project.media && project.media.type === 'video' && project.media.url) {
+                    mediaHtml = `<div class="work-card-media"><video src="${project.media.url}" muted loop playsinline autoplay></video></div>`;
+                }
+                return `
                 <div class="work-card animate-element">
-                    <h3>${project.title || '未命名项目'}</h3>
-                    <p>${project.description || '暂无描述'}</p>
-                    <a href="${project.link || '#'}">查看详情</a>
+                    ${mediaHtml}
+                    <div class="work-card-content">
+                        <h3>${project.title || '未命名项目'}</h3>
+                        <p>${project.description || '暂无描述'}</p>
+                        <a href="${project.link || '#'}">查看详情</a>
+                    </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function initProjectEvents() {
@@ -1647,7 +1589,7 @@
                 addProjectBtn.onclick = function() {
                     let projects = loadProjects();
                     if (projects.length >= 6) return;
-                    projects.push({ title: '', description: '', link: '#' });
+                    projects.push({ title: '', description: '', link: '#', media: null });
                     saveProjects(projects);
                     renderProjects();
                 };
@@ -1662,15 +1604,82 @@
                     renderProjects();
                     renderWorksSection();
                 }
+                if (e.target.classList.contains('project-media-apply-btn')) {
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    const urlInput = document.querySelector(`.project-media-url[data-index="${index}"]`);
+                    const url = urlInput ? urlInput.value.trim() : '';
+                    if (url) {
+                        const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
+                        const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
+                        let projects = loadProjects();
+                        if (isImage) {
+                            projects[index].media = { type: 'image', url: url };
+                        } else if (isVideo) {
+                            projects[index].media = { type: 'video', url: url };
+                        }
+                        saveProjects(projects);
+                        renderProjects();
+                    }
+                }
             };
+            
+            document.addEventListener('dragover', function(e) {
+                if (e.target.classList.contains('project-media-dropzone')) {
+                    e.preventDefault();
+                    e.target.style.borderColor = 'rgba(212,175,55,0.5)';
+                }
+            });
+            
+            document.addEventListener('dragleave', function(e) {
+                if (e.target.classList.contains('project-media-dropzone')) {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.2)';
+                }
+            });
+            
+            document.addEventListener('drop', function(e) {
+                if (e.target.classList.contains('project-media-dropzone')) {
+                    e.preventDefault();
+                    e.target.style.borderColor = 'rgba(255,255,255,0.2)';
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    const files = e.dataTransfer.files;
+                    if (files.length === 0) return;
+                    const file = files[0];
+                    const fileType = file.type;
+                    const isImage = fileType.startsWith('image/');
+                    const isVideo = fileType.startsWith('video/');
+                    if (!isImage && !isVideo) return;
+                    if (isVideo && file.size > 8 * 1024 * 1024) return;
+                    if (isImage) {
+                        compressImageToDataUrl(file, 800, 0.7).then(dataUrl => {
+                            if (dataUrl) {
+                                let projects = loadProjects();
+                                projects[index].media = { type: 'image', dataUrl: dataUrl };
+                                saveProjects(projects);
+                                renderProjects();
+                            }
+                        });
+                    } else {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            let projects = loadProjects();
+                            projects[index].media = { type: 'video', dataUrl: event.target.result };
+                            saveProjects(projects);
+                            renderProjects();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
             
             if (saveProjectsBtn) {
                 saveProjectsBtn.onclick = function() {
                     const projectCards = document.querySelectorAll('.project-card');
-                    const projects = Array.from(projectCards).map(card => ({
+                    let projects = loadProjects();
+                    projects = Array.from(projectCards).map((card, i) => ({
                         title: card.querySelector('.project-title').value,
                         description: card.querySelector('.project-description').value,
-                        link: card.querySelector('.project-link').value || '#'
+                        link: card.querySelector('.project-link').value || '#',
+                        media: projects[i] ? projects[i].media : null
                     }));
                     localStorage.setItem('siteProjects', JSON.stringify(projects));
                     renderWorksSection();
@@ -1679,7 +1688,6 @@
                     setTimeout(function() {
                         saveProjectsBtn.textContent = '保存修改';
                     }, 500);
-                    modalOverlay.classList.remove('show');
                 };
             }
         }
@@ -1710,7 +1718,6 @@
                 tabText.style.display = 'none';
                 tabProjects.style.display = 'none';
                 tabMusic.style.display = 'none';
-                tabMedia.style.display = 'none';
             }
         });
 
@@ -1750,7 +1757,6 @@
                 tabText.style.display = 'none';
                 tabProjects.style.display = 'none';
                 tabMusic.style.display = 'none';
-                tabMedia.style.display = 'none';
                 const texts = loadTexts();
                 textInputs.forEach(input => {
                     const key = input.getAttribute('data-text');
@@ -1778,7 +1784,6 @@
                 tabText.style.display = tabName === 'text' ? 'block' : 'none';
                 tabProjects.style.display = tabName === 'projects' ? 'block' : 'none';
                 tabMusic.style.display = tabName === 'music' ? 'block' : 'none';
-                tabMedia.style.display = tabName === 'media' ? 'block' : 'none';
                 
                 if (tabName === 'text') {
                     const texts = loadTexts();
@@ -2140,244 +2145,6 @@
             } catch (e) {}
         })();
 
-        const mediaDropZone = document.getElementById('mediaDropZone');
-        const mediaList = document.getElementById('mediaList');
-        const saveMediaBtn = document.getElementById('saveMediaBtn');
-        const closeBtn4 = document.getElementById('closeBtn4');
-        const tabMedia = document.getElementById('tabMedia');
-        const lightboxOverlay = document.getElementById('lightboxOverlay');
-        const lightboxImg = document.getElementById('lightboxImg');
-
-        let tempMediaArray = [];
-        let inMemoryMedia = [];
-
-        async function loadMediaFromCloud() {
-            try {
-                const snapshot = await db.ref('siteData/media').once('value');
-                return snapshot.val() || null;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        async function saveMediaToCloud(media) {
-            if (!isAuthenticated) return;
-            try {
-                await db.ref('siteData/media').set(media);
-            } catch (e) {}
-        }
-
-        async function loadMediaFromDB() {
-            const cloudData = await loadMediaFromCloud();
-            if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
-                return cloudData;
-            }
-            try {
-                const db = await openMusicDB();
-                return new Promise((resolve) => {
-                    const transaction = db.transaction(MEDIA_STORE_NAME, 'readonly');
-                    const store = transaction.objectStore(MEDIA_STORE_NAME);
-                    const request = store.get('mediaItems');
-                    request.onsuccess = () => {
-                        const data = request.result;
-                        resolve(data ? data.items : []);
-                    };
-                    request.onerror = () => resolve([]);
-                });
-            } catch (e) {
-                return inMemoryMedia;
-            }
-        }
-
-        async function saveMediaToDB(media) {
-            try {
-                const db = await openMusicDB();
-                return new Promise((resolve) => {
-                    const transaction = db.transaction(MEDIA_STORE_NAME, 'readwrite');
-                    const store = transaction.objectStore(MEDIA_STORE_NAME);
-                    store.put({ id: 'mediaItems', items: media });
-                    transaction.oncomplete = () => resolve();
-                    transaction.onerror = () => resolve();
-                });
-            } catch (e) {
-                inMemoryMedia = media;
-            }
-        }
-
-        async function saveMediaToFirebase(media) {
-            await saveMediaToDB(media);
-            await saveMediaToCloud(media);
-        }
-
-        function clearLocalStorageMedia() {
-            try {
-                localStorage.removeItem('siteMedia');
-            } catch (e) {}
-        }
-
-        function loadLegacyMedia() {
-            try {
-                const saved = localStorage.getItem('siteMedia');
-                if (saved) {
-                    try {
-                        return JSON.parse(saved);
-                    } catch (e) {
-                        return [];
-                    }
-                }
-            } catch (e) {}
-            return [];
-        }
-
-        function renderMediaList(media) {
-            mediaList.innerHTML = media.map((item, index) => `
-                <div class="media-item" data-index="${index}">
-                    ${item.type === 'image' 
-                        ? `<img class="media-item-thumb" src="${item.dataUrl}" alt="">`
-                        : `<div class="media-item-thumb" style="display:flex;align-items:center;justify-content:center;font-size:12px;color:#888;">视频</div>`
-                    }
-                    <span class="media-item-type">${item.type === 'image' ? '图片' : '视频'}</span>
-                    <button class="media-item-delete" data-index="${index}">×</button>
-                </div>
-            `).join('');
-        }
-
-        async function renderMediaSection() {
-            const media = await loadMediaFromDB();
-            const container = document.getElementById('media-container');
-            const mediaSection = document.getElementById('media');
-            
-            if (media.length === 0) {
-                mediaSection.classList.add('hidden');
-                return;
-            }
-            
-            mediaSection.classList.remove('hidden');
-            
-            container.innerHTML = media.map((item, index) => `
-                <div class="media-card" data-index="${index}" data-type="${item.type}">
-                    ${item.type === 'image'
-                        ? `<img src="${item.dataUrl}" alt="">`
-                        : `<video src="${item.dataUrl}" muted playsinline controls preload="metadata"></video>`
-                    }
-                </div>
-            `).join('');
-        }
-
-        mediaDropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            mediaDropZone.classList.add('dragover');
-        });
-
-        mediaDropZone.addEventListener('dragleave', () => {
-            mediaDropZone.classList.remove('dragover');
-        });
-
-        mediaDropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            mediaDropZone.classList.remove('dragover');
-
-            const files = e.dataTransfer.files;
-            if (files.length === 0) return;
-
-            Array.from(files).forEach(file => {
-                const fileType = file.type;
-                const isImage = fileType.startsWith('image/');
-                const isVideo = fileType.startsWith('video/');
-                
-                if (!isImage && !isVideo) return;
-                
-                if (file.size > 20 * 1024 * 1024) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    tempMediaArray.push({
-                        type: isImage ? 'image' : 'video',
-                        dataUrl: event.target.result
-                    });
-                    renderMediaList(tempMediaArray);
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-
-        mediaList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('media-item-delete')) {
-                const index = parseInt(e.target.getAttribute('data-index'));
-                tempMediaArray.splice(index, 1);
-                renderMediaList(tempMediaArray);
-            }
-        });
-
-        saveMediaBtn.addEventListener('click', async () => {
-            await saveMediaToFirebase(tempMediaArray);
-            await renderMediaSection();
-            saveMediaBtn.textContent = '已保存';
-            setTimeout(() => {
-                saveMediaBtn.textContent = '保存修改';
-            }, 500);
-            modalOverlay.classList.remove('show');
-        });
-
-        closeBtn4.addEventListener('click', () => {
-            modalOverlay.classList.remove('show');
-        });
-
-        document.getElementById('media-container').addEventListener('click', async (e) => {
-            const card = e.target.closest('.media-card');
-            if (!card) return;
-            
-            const index = parseInt(card.getAttribute('data-index'));
-            const media = await loadMediaFromDB();
-            const item = media[index];
-            
-            if (item && item.type === 'image') {
-                lightboxImg.src = item.dataUrl;
-                lightboxOverlay.classList.add('show');
-            } else if (item && item.type === 'video') {
-                const video = card.querySelector('video');
-                if (video) {
-                    if (video.paused) {
-                        video.muted = false;
-                        video.play();
-                    } else {
-                        video.pause();
-                    }
-                }
-            }
-        });
-
-        lightboxOverlay.addEventListener('click', (e) => {
-            if (e.target === lightboxOverlay) {
-                lightboxOverlay.classList.remove('show');
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && lightboxOverlay.classList.contains('show')) {
-                lightboxOverlay.classList.remove('show');
-            }
-        });
-
-        modalTabs.forEach(tab => {
-            tab.addEventListener('click', async () => {
-                const tabName = tab.getAttribute('data-tab');
-                if (tabName === 'media') {
-                    tempMediaArray = await loadMediaFromDB();
-                    renderMediaList(tempMediaArray);
-                }
-            });
-        });
-
-        (async () => {
-            const legacyData = loadLegacyMedia();
-            if (legacyData.length > 0) {
-                await saveMediaToDB(legacyData);
-            }
-            clearLocalStorageMedia();
-            await renderMediaSection();
-        })();
-
         (async () => {
             const cloudData = await db.ref('siteData/texts').once('value');
             if (!cloudData.val()) {
@@ -2420,34 +2187,29 @@
                         worksSection.classList.add('hidden');
                     } else {
                         worksSection.classList.remove('hidden');
-                        container.innerHTML = data.projects.map(project => `
-                            <div class="work-card animate-element">
-                                <h3>${project.title || '未命名项目'}</h3>
-                                <p>${project.description || '暂无描述'}</p>
-                                <a href="${project.link || '#'}">查看详情</a>
-                            </div>
-                        `).join('');
-                    }
-                }
-            }
-            if (data.media && Array.isArray(data.media) && data.media.length > 0) {
-                const container = document.getElementById('media-container');
-                const mediaSection = document.getElementById('media');
-                if (container && mediaSection) {
-                    mediaSection.classList.remove('hidden');
-                    container.innerHTML = data.media.map((item, index) => `
-                        <div class="media-card" data-index="${index}" data-type="${item.type}">
-                            ${item.type === 'image'
-                                ? `<img src="${item.dataUrl}" alt="">`
-                                : `<video src="${item.dataUrl}" muted playsinline controls preload="metadata"></video>`
+                        container.innerHTML = data.projects.map(project => {
+                            let mediaHtml = '<div class="work-card-media"><span class="placeholder-icon">▣</span></div>';
+                            if (project.media && project.media.type === 'image' && project.media.dataUrl) {
+                                mediaHtml = `<div class="work-card-media"><img src="${project.media.dataUrl}" alt=""></div>`;
+                            } else if (project.media && project.media.type === 'image' && project.media.url) {
+                                mediaHtml = `<div class="work-card-media"><img src="${project.media.url}" alt=""></div>`;
+                            } else if (project.media && project.media.type === 'video' && project.media.dataUrl) {
+                                mediaHtml = `<div class="work-card-media"><video src="${project.media.dataUrl}" muted loop playsinline autoplay></video></div>`;
+                            } else if (project.media && project.media.type === 'video' && project.media.url) {
+                                mediaHtml = `<div class="work-card-media"><video src="${project.media.url}" muted loop playsinline autoplay></video></div>`;
                             }
-                        </div>
-                    `).join('');
-                }
-            } else {
-                const mediaSection = document.getElementById('media');
-                if (mediaSection) {
-                    mediaSection.classList.add('hidden');
+                            return `
+                            <div class="work-card animate-element">
+                                ${mediaHtml}
+                                <div class="work-card-content">
+                                    <h3>${project.title || '未命名项目'}</h3>
+                                    <p>${project.description || '暂无描述'}</p>
+                                    <a href="${project.link || '#'}">查看详情</a>
+                                </div>
+                            </div>
+                            `;
+                        }).join('');
+                    }
                 }
             }
             if (data.bgVideoMuted !== undefined) {
@@ -2467,7 +2229,7 @@
             const versionDebug = document.createElement('div');
             versionDebug.id = 'version-debug';
             versionDebug.style.cssText = 'position: fixed; bottom: 0; left: 0; color: rgba(255,255,255,0.3); font-size: 10px; z-index: 999; pointer-events: none;';
-            versionDebug.textContent = 'debug-20260119-final';
+            versionDebug.textContent = 'debug-bg-crossbrowser';
             document.body.appendChild(versionDebug);
 
             let renderCount = 0;
