@@ -172,8 +172,6 @@
             margin: 0 auto;
         }
 
-        
-
         .section-content {
             position: relative;
             z-index: 1;
@@ -358,8 +356,8 @@
             }
 
             section {
-            padding: 5rem 5%;
-        }
+                padding: 5rem 5%;
+            }
         }
 
         .modal-overlay {
@@ -1104,6 +1102,39 @@
     </div>
 
     <script>
+        // ========== 图片压缩函数（修复缺失） ==========
+        function compressImageToDataUrl(file, maxWidth, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = function() {
+                        // 如果无法作为图片加载，返回原始 Data URL（可能不是图片）
+                        resolve(e.target.result);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ========== 视频去重（保留背景视频） ==========
         (function() {
             const videos = document.querySelectorAll('video');
             const bgVideo = document.getElementById('bgVideo');
@@ -1116,6 +1147,7 @@
             }
         })();
 
+        // ========== Firebase 初始化 ==========
         const firebaseConfig = {
             apiKey: "AIzaSyAjQTDH8-Xv2c-5h_seYxCdDAwRaMjor5w",
             authDomain: "heihong8-site.firebaseapp.com",
@@ -1156,6 +1188,7 @@
             observer.observe(element);
         });
 
+        // ========== 背景图片/视频管理 ==========
         const backgroundType = 'video';
         const imageUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80';
         const videoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-abstract-light-particles-loop-24979-large.mp4';
@@ -1352,6 +1385,7 @@
             } catch (e) {}
         });
 
+        // ========== 文字管理 ==========
         const defaultTexts = {
             siteName: '黑红8',
             heroTitle: '创造有意义的数字体验',
@@ -1394,11 +1428,33 @@
             document.querySelector('.hero h1').textContent = texts.heroTitle || defaultTexts.heroTitle;
             document.querySelector('.hero p').textContent = texts.heroSubtitle || defaultTexts.heroSubtitle;
             document.querySelector('#about .about-content h2').textContent = texts.aboutTitle || defaultTexts.aboutTitle;
-            const aboutParagraphs = document.querySelectorAll('#about .about-content p');
-            const aboutTexts = (texts.aboutText || defaultTexts.aboutText).split('\n');
-            aboutParagraphs.forEach((p, i) => {
-                p.textContent = aboutTexts[i] || '';
+
+            // 处理关于我段落（支持任意行数）
+            const aboutContainer = document.querySelector('#about .about-content');
+            const existingParagraphs = aboutContainer.querySelectorAll('p');
+            const lines = (texts.aboutText || defaultTexts.aboutText).split('\n');
+            
+            // 移除多余的段落
+            existingParagraphs.forEach((p, index) => {
+                if (index >= lines.length) {
+                    p.style.display = 'none';
+                    p.textContent = '';
+                }
             });
+
+            // 更新或创建段落
+            lines.forEach((line, index) => {
+                let p;
+                if (index < existingParagraphs.length) {
+                    p = existingParagraphs[index];
+                    p.style.display = ''; // 确保可见
+                } else {
+                    p = document.createElement('p');
+                    aboutContainer.appendChild(p);
+                }
+                p.textContent = line;
+            });
+
             document.querySelector('footer p').textContent = texts.footerText || defaultTexts.footerText;
         }
 
@@ -1411,23 +1467,7 @@
             }
         })();
 
-        const developerLink = document.getElementById('developerLink');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const closeBtn = document.getElementById('closeBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const dropZone = document.getElementById('dropZone');
-        const loginModal = document.getElementById('loginModal');
-        const loginPassword = document.getElementById('loginPassword');
-        const loginConfirm = document.getElementById('loginConfirm');
-        const loginCancel = document.getElementById('loginCancel');
-        const modalTabs = document.querySelectorAll('.modal-tab');
-        const tabBackground = document.getElementById('tabBackground');
-        const tabText = document.getElementById('tabText');
-        const saveTextsBtn = document.getElementById('saveTextsBtn');
-        const textInputs = document.querySelectorAll('[data-text]');
-
-        const DEV_PASSWORD = 'Xmshf20200103';
-
+        // ========== 项目数据管理 ==========
         const defaultProjects = [
             {
                 title: '品牌重塑项目',
@@ -1612,7 +1652,8 @@
                 };
             }
             
-            document.onclick = function(e) {
+            // 使用事件委托处理项目列表中的点击（删除、媒体应用）
+            document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('delete-btn')) {
                     const index = parseInt(e.target.getAttribute('data-index'));
                     let projects = loadProjects();
@@ -1638,8 +1679,9 @@
                         renderProjects();
                     }
                 }
-            };
+            });
             
+            // 拖拽媒体到项目
             document.addEventListener('dragover', function(e) {
                 if (e.target.classList.contains('project-media-dropzone')) {
                     e.preventDefault();
@@ -1719,8 +1761,33 @@
             initProjectEvents();
         }
 
+        // ========== 开发者功能 ==========
         const DEV_PASSWORD_ENABLED = true;
+        const DEV_PASSWORD = 'Xmshf20200103';
+        const developerLink = document.getElementById('developerLink');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const loginModal = document.getElementById('loginModal');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginConfirm = document.getElementById('loginConfirm');
+        const loginCancel = document.getElementById('loginCancel');
+        const modalTabs = document.querySelectorAll('.modal-tab');
+        const tabBackground = document.getElementById('tabBackground');
+        const tabText = document.getElementById('tabText');
+        const tabProjects = document.getElementById('tabProjects');
+        const tabMusic = document.getElementById('tabMusic');
+        const textInputs = document.querySelectorAll('[data-text]');
+        const saveTextsBtn = document.getElementById('saveTextsBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const closeBtn2 = document.getElementById('closeBtn2');
+        const resetBtn = document.getElementById('resetBtn');
+        const dropZone = document.getElementById('dropZone');
+        const bgUrlInput = document.getElementById('bgUrlInput');
+        const applyBgUrlBtn = document.getElementById('applyBgUrlBtn');
+        const videoSoundToggle = document.getElementById('videoSoundToggle');
+        const videoSoundControl = document.querySelector('.video-sound-control');
+        const toggleSwitch = document.querySelector('.toggle-switch');
 
+        // 打开开发者链接
         developerLink.addEventListener('click', (e) => {
             e.preventDefault();
             if (DEV_PASSWORD_ENABLED) {
@@ -1729,51 +1796,29 @@
                 loginPassword.classList.remove('error');
             } else {
                 modalOverlay.classList.add('show');
-                modalTabs.forEach(tab => tab.classList.remove('active'));
-                document.querySelector('[data-tab="background"]').classList.add('active');
-                tabBackground.style.display = 'block';
-                tabText.style.display = 'none';
-                tabProjects.style.display = 'none';
-                tabMusic.style.display = 'none';
+                switchTab('background');
             }
         });
 
-        closeBtn.addEventListener('click', () => {
-            modalOverlay.classList.remove('show');
-        });
-
-        const closeBtn2 = document.getElementById('closeBtn2');
-        closeBtn2.addEventListener('click', () => {
-            modalOverlay.classList.remove('show');
-        });
-
+        // 关闭弹窗
+        closeBtn.addEventListener('click', () => modalOverlay.classList.remove('show'));
+        closeBtn2.addEventListener('click', () => modalOverlay.classList.remove('show'));
         modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                modalOverlay.classList.remove('show');
-            }
+            if (e.target === modalOverlay) modalOverlay.classList.remove('show');
         });
 
-        loginCancel.addEventListener('click', () => {
-            loginModal.classList.remove('show');
-        });
-
+        // 登录逻辑
+        loginCancel.addEventListener('click', () => loginModal.classList.remove('show'));
         loginModal.addEventListener('click', (e) => {
-            if (e.target === loginModal) {
-                loginModal.classList.remove('show');
-            }
+            if (e.target === loginModal) loginModal.classList.remove('show');
         });
-
         loginConfirm.addEventListener('click', () => {
             if (loginPassword.value === DEV_PASSWORD) {
                 isAuthenticated = true;
                 loginModal.classList.remove('show');
                 modalOverlay.classList.add('show');
-                modalTabs.forEach(tab => tab.classList.remove('active'));
-                document.querySelector('[data-tab="background"]').classList.add('active');
-                tabBackground.style.display = 'block';
-                tabText.style.display = 'none';
-                tabProjects.style.display = 'none';
-                tabMusic.style.display = 'none';
+                switchTab('background');
+                // 预填文字
                 const texts = loadTexts();
                 textInputs.forEach(input => {
                     const key = input.getAttribute('data-text');
@@ -1786,38 +1831,37 @@
             } else {
                 loginPassword.classList.add('error');
                 loginPassword.value = '';
-                setTimeout(() => {
-                    loginPassword.classList.remove('error');
-                }, 500);
+                setTimeout(() => loginPassword.classList.remove('error'), 500);
             }
         });
 
+        function switchTab(tabName) {
+            modalTabs.forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            tabBackground.style.display = tabName === 'background' ? 'block' : 'none';
+            tabText.style.display = tabName === 'text' ? 'block' : 'none';
+            tabProjects.style.display = tabName === 'projects' ? 'block' : 'none';
+            tabMusic.style.display = tabName === 'music' ? 'block' : 'none';
+            if (tabName === 'text') {
+                const texts = loadTexts();
+                textInputs.forEach(input => {
+                    const key = input.getAttribute('data-text');
+                    if (key === 'aboutText') {
+                        input.value = texts.aboutText || defaultTexts.aboutText;
+                    } else {
+                        input.value = texts[key] || defaultTexts[key] || '';
+                    }
+                });
+            } else if (tabName === 'projects') {
+                renderProjects();
+            }
+        }
+
         modalTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                modalTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const tabName = tab.getAttribute('data-tab');
-                tabBackground.style.display = tabName === 'background' ? 'block' : 'none';
-                tabText.style.display = tabName === 'text' ? 'block' : 'none';
-                tabProjects.style.display = tabName === 'projects' ? 'block' : 'none';
-                tabMusic.style.display = tabName === 'music' ? 'block' : 'none';
-                
-                if (tabName === 'text') {
-                    const texts = loadTexts();
-                    textInputs.forEach(input => {
-                        const key = input.getAttribute('data-text');
-                        if (key === 'aboutText') {
-                            input.value = texts.aboutText || defaultTexts.aboutText;
-                        } else {
-                            input.value = texts[key] || defaultTexts[key] || '';
-                        }
-                    });
-                } else if (tabName === 'projects') {
-                    renderProjects();
-                }
-            });
+            tab.addEventListener('click', () => switchTab(tab.getAttribute('data-tab')));
         });
 
+        // 文字保存（不关闭弹窗）
         saveTextsBtn.addEventListener('click', () => {
             const texts = {};
             textInputs.forEach(input => {
@@ -1827,37 +1871,32 @@
             localStorage.setItem('siteTexts', JSON.stringify(texts));
             applyTexts(texts);
             saveTextsToCloud(texts);
-            modalOverlay.classList.remove('show');
+            saveTextsBtn.textContent = '已保存';
+            setTimeout(() => {
+                saveTextsBtn.textContent = '保存修改';
+            }, 500);
+            // 不再关闭弹窗
         });
 
+        // 背景拖拽处理
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
         });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
-
             const files = e.dataTransfer.files;
             if (files.length === 0) return;
-
             const file = files[0];
             const fileType = file.type;
-
             if (fileType.startsWith('image/') || fileType.startsWith('video/')) {
                 if (fileType.startsWith('video/') && file.size > 8 * 1024 * 1024) {
                     dropZone.style.borderColor = '#ff4444';
-                    setTimeout(() => {
-                        dropZone.style.borderColor = '';
-                    }, 1000);
+                    setTimeout(() => dropZone.style.borderColor = '', 1000);
                     return;
                 }
-
                 if (fileType.startsWith('image/')) {
                     compressImageToDataUrl(file, 1920, 0.8).then(dataUrl => {
                         if (dataUrl) {
@@ -1887,16 +1926,12 @@
             }
         });
 
-        const bgUrlInput = document.getElementById('bgUrlInput');
-        const applyBgUrlBtn = document.getElementById('applyBgUrlBtn');
-
+        // 背景链接应用
         applyBgUrlBtn.addEventListener('click', () => {
             const url = bgUrlInput.value.trim();
             if (!url) return;
-
             const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
             const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
-
             if (isImage) {
                 videoContainer.style.display = 'none';
                 bgContainer.style.backgroundImage = `url(${url})`;
@@ -1914,6 +1949,7 @@
             }
         });
 
+        // 恢复默认背景
         resetBtn.addEventListener('click', () => {
             clearBackground();
             clearBackgroundFromCloud();
@@ -1929,48 +1965,28 @@
             modalOverlay.classList.remove('show');
         });
 
-        const videoSoundToggle = document.getElementById('videoSoundToggle');
-        const videoSoundControl = document.querySelector('.video-sound-control');
-        const toggleSwitch = document.querySelector('.toggle-switch');
-
+        // 视频声音控制
         function loadVideoMuted() {
             const saved = localStorage.getItem('bgVideoMuted');
-            if (saved !== null) {
-                return saved === 'true';
-            }
-            return true;
+            return saved !== null ? saved === 'true' : true;
         }
-
         async function loadVideoMutedFromCloud() {
             try {
                 const snapshot = await db.ref('siteData/bgVideoMuted').once('value');
-                const val = snapshot.val();
-                return val !== null ? val : true;
-            } catch (e) {
-                return true;
-            }
+                return snapshot.val() !== null ? snapshot.val() : true;
+            } catch (e) { return true; }
         }
-
         async function saveVideoMutedToCloud(muted) {
             if (!isAuthenticated) return;
-            try {
-                await db.ref('siteData/bgVideoMuted').set(muted);
-            } catch (e) {}
+            try { await db.ref('siteData/bgVideoMuted').set(muted); } catch (e) {}
         }
-
-        function saveVideoMuted(muted) {
-            localStorage.setItem('bgVideoMuted', muted.toString());
-        }
-
+        function saveVideoMuted(muted) { localStorage.setItem('bgVideoMuted', muted.toString()); }
         function applyVideoMuted(muted) {
             if (videoElement) {
                 videoElement.muted = muted;
-                if (!muted) {
-                    videoElement.volume = 1.0;
-                }
+                if (!muted) videoElement.volume = 1.0;
             }
         }
-
         function updateVideoSoundToggle() {
             const hasVideo = videoContainer.style.display !== 'none';
             if (hasVideo) {
@@ -1983,15 +1999,12 @@
                 videoSoundToggle.disabled = true;
             }
         }
-
         videoSoundToggle.addEventListener('change', (e) => {
             const muted = !e.target.checked;
             saveVideoMuted(muted);
             saveVideoMutedToCloud(muted);
             applyVideoMuted(muted);
-            updateVideoSoundToggle();
         });
-
         (async () => {
             const muted = await loadVideoMutedFromCloud();
             videoSoundToggle.checked = !muted;
@@ -1999,11 +2012,11 @@
             updateVideoSoundToggle();
         })();
 
+        // ========== 音乐管理 ==========
         const MUSIC_DB_NAME = 'CustomAssets';
         const MUSIC_DB_VERSION = 3;
         const MUSIC_STORE_NAME = 'audio';
         const MEDIA_STORE_NAME = 'media';
-
         function openMusicDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(MUSIC_DB_NAME, MUSIC_DB_VERSION);
@@ -2020,7 +2033,6 @@
                 };
             });
         }
-
         async function saveMusic(dataUrl) {
             const db = await openMusicDB();
             return new Promise((resolve, reject) => {
@@ -2031,12 +2043,9 @@
                 transaction.onerror = () => reject(transaction.error);
             });
         }
-
         async function loadMusic() {
             const cloudData = await loadMusicFromCloud();
-            if (cloudData && cloudData.dataUrl) {
-                return { dataUrl: cloudData.dataUrl };
-            }
+            if (cloudData && cloudData.dataUrl) return { dataUrl: cloudData.dataUrl };
             const db = await openMusicDB();
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction(MUSIC_STORE_NAME, 'readonly');
@@ -2046,7 +2055,6 @@
                 request.onerror = () => reject(request.error);
             });
         }
-
         async function clearMusic() {
             const db = await openMusicDB();
             return new Promise((resolve, reject) => {
@@ -2057,65 +2065,38 @@
                 transaction.onerror = () => reject(transaction.error);
             });
         }
-
         async function saveMusicToCloud(dataUrl) {
             if (!isAuthenticated) return;
-            try {
-                await db.ref('siteData/bgMusic/dataUrl').set(dataUrl);
-            } catch (e) {}
+            try { await db.ref('siteData/bgMusic/dataUrl').set(dataUrl); } catch (e) {}
         }
-
         async function loadMusicFromCloud() {
-            try {
-                const snapshot = await db.ref('siteData/bgMusic').once('value');
-                return snapshot.val() || null;
-            } catch (e) {
-                return null;
-            }
+            try { const snapshot = await db.ref('siteData/bgMusic').once('value'); return snapshot.val() || null; } catch (e) { return null; }
         }
-
         async function clearMusicFromCloud() {
             if (!isAuthenticated) return;
-            try {
-                await db.ref('siteData/bgMusic').remove();
-            } catch (e) {}
+            try { await db.ref('siteData/bgMusic').remove(); } catch (e) {}
         }
-
         async function saveMusicVolumeToCloud(volume) {
             if (!isAuthenticated) return;
-            try {
-                await db.ref('siteData/bgMusic/volume').set(volume);
-            } catch (e) {}
+            try { await db.ref('siteData/bgMusic/volume').set(volume); } catch (e) {}
         }
-
         async function loadMusicVolumeFromCloud() {
-            try {
-                const snapshot = await db.ref('siteData/bgMusic/volume').once('value');
-                const val = snapshot.val();
-                return val !== null ? val : 50;
-            } catch (e) {
-                return 50;
-            }
+            try { const snapshot = await db.ref('siteData/bgMusic/volume').once('value'); return snapshot.val() !== null ? snapshot.val() : 50; } catch (e) { return 50; }
         }
 
         const musicDropZone = document.getElementById('musicDropZone');
         const volumeSlider = document.getElementById('volumeSlider');
         const removeMusicBtn = document.getElementById('removeMusicBtn');
-        const tabMusic = document.getElementById('tabMusic');
 
         function createAudioElement(src, volume) {
             let audio = document.getElementById('bgMusicAudio');
-            if (audio) {
-                audio.pause();
-                audio.remove();
-            }
+            if (audio) { audio.pause(); audio.remove(); }
             audio = document.createElement('audio');
             audio.id = 'bgMusicAudio';
             audio.src = src;
             audio.loop = true;
             audio.volume = volume / 100;
             audio.preload = 'auto';
-            audio.muted = false;
             document.body.appendChild(audio);
             return audio;
         }
@@ -2129,28 +2110,17 @@
             });
         }
 
-        musicDropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            musicDropZone.classList.add('dragover');
-        });
-
-        musicDropZone.addEventListener('dragleave', () => {
-            musicDropZone.classList.remove('dragover');
-        });
-
+        musicDropZone.addEventListener('dragover', (e) => { e.preventDefault(); musicDropZone.classList.add('dragover'); });
+        musicDropZone.addEventListener('dragleave', () => musicDropZone.classList.remove('dragover'));
         musicDropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             musicDropZone.classList.remove('dragover');
-
             const files = e.dataTransfer.files;
             if (files.length === 0) return;
-
             const file = files[0];
             const fileType = file.type;
             const validTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/webm'];
-            
             if (!validTypes.includes(fileType) && !fileType.startsWith('audio/')) return;
-
             const reader = new FileReader();
             reader.onload = (event) => {
                 const dataUrl = event.target.result;
@@ -2167,19 +2137,14 @@
             const volume = parseInt(e.target.value);
             e.target.style.setProperty('--value', volume + '%');
             const audio = document.getElementById('bgMusicAudio');
-            if (audio) {
-                audio.volume = volume / 100;
-            }
+            if (audio) audio.volume = volume / 100;
             localStorage.setItem('bgMusicVolume', volume.toString());
             saveMusicVolumeToCloud(volume);
         });
 
         removeMusicBtn.addEventListener('click', () => {
             const audio = document.getElementById('bgMusicAudio');
-            if (audio) {
-                audio.pause();
-                audio.remove();
-            }
+            if (audio) { audio.pause(); audio.remove(); }
             clearMusic().catch(() => {});
             clearMusicFromCloud().catch(() => {});
             localStorage.removeItem('bgMusicVolume');
@@ -2188,52 +2153,20 @@
 
         (async () => {
             const savedVolume = localStorage.getItem('bgMusicVolume');
-            if (savedVolume) {
-                volumeSlider.value = savedVolume;
-            }
-
+            if (savedVolume) volumeSlider.value = savedVolume;
             try {
                 const musicData = await loadMusic();
-                if (musicData && (musicData.dataUrl || musicData.data)) {
-                    const src = musicData.dataUrl || musicData.data;
+                if (musicData && musicData.dataUrl) {
                     const volume = parseInt(savedVolume || 50);
-                    const audio = createAudioElement(src, volume);
+                    const audio = createAudioElement(musicData.dataUrl, volume);
                     tryPlayAudio(audio);
                 }
             } catch (e) {}
         })();
 
-        (async () => {
-            const cloudData = await db.ref('siteData/texts').once('value');
-            if (!cloudData.val()) {
-                const localTexts = localStorage.getItem('siteTexts');
-                if (localTexts) {
-                    try {
-                        const texts = JSON.parse(localTexts);
-                        await db.ref('siteData/texts').set(texts);
-                    } catch (e) {}
-                }
-            }
-        })();
-
-        (async () => {
-            const cloudData = await db.ref('siteData/projects').once('value');
-            if (!cloudData.val()) {
-                const localProjects = localStorage.getItem('siteProjects');
-                if (localProjects) {
-                    try {
-                        const projects = JSON.parse(localProjects);
-                        if (projects && projects.length > 0) {
-                            await db.ref('siteData/projects').set(projects);
-                        }
-                    } catch (e) {}
-                }
-            }
-        })();
-
+        // ========== 云同步监听 ==========
         let previousTexts = null;
         let previousProjects = null;
-
         db.ref('siteData/texts').on('value', (snapshot) => {
             const texts = snapshot.val();
             if (texts && JSON.stringify(texts) !== JSON.stringify(previousTexts)) {
@@ -2241,7 +2174,6 @@
                 applyTexts(texts);
             }
         });
-
         db.ref('siteData/projects').on('value', (snapshot) => {
             const projects = snapshot.val();
             if (projects && Array.isArray(projects) && JSON.stringify(projects) !== JSON.stringify(previousProjects)) {
@@ -2279,52 +2211,39 @@
                 }
             }
         });
-
         db.ref('siteData/bgVideoMuted').on('value', (snapshot) => {
             const muted = snapshot.val();
             if (muted !== undefined) {
                 const videoElement = document.getElementById('bgVideo');
-                if (videoElement) {
-                    videoElement.muted = muted;
-                }
+                if (videoElement) videoElement.muted = muted;
             }
         });
 
-        (function() {
-            const statusDot = document.createElement('div');
-            statusDot.id = 'render-status';
-            statusDot.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 4px; height: 4px; border-radius: 50%; background: red; opacity: 0.5; z-index: 9999; pointer-events: none;';
-            document.body.appendChild(statusDot);
-
-            const versionDebug = document.createElement('div');
-            versionDebug.id = 'version-debug';
-            versionDebug.style.cssText = 'position: fixed; bottom: 0; left: 0; color: rgba(255,255,255,0.3); font-size: 10px; z-index: 999; pointer-events: none;';
-            versionDebug.textContent = 'debug-bg-crossbrowser';
-            document.body.appendChild(versionDebug);
-
-            let renderCount = 0;
-            const totalRenders = 3;
-
-            function markRenderComplete() {
-                renderCount++;
-                if (renderCount >= totalRenders) {
-                    statusDot.style.background = 'green';
+        // 迁移本地数据到云
+        (async () => {
+            const cloudTexts = await db.ref('siteData/texts').once('value');
+            if (!cloudTexts.val()) {
+                const localTexts = localStorage.getItem('siteTexts');
+                if (localTexts) {
+                    try { await db.ref('siteData/texts').set(JSON.parse(localTexts)); } catch (e) {}
                 }
             }
+            const cloudProjects = await db.ref('siteData/projects').once('value');
+            if (!cloudProjects.val()) {
+                const localProjects = localStorage.getItem('siteProjects');
+                if (localProjects) {
+                    try { await db.ref('siteData/projects').set(JSON.parse(localProjects)); } catch (e) {}
+                }
+            }
+        })();
 
-            setTimeout(() => {
-                markRenderComplete();
-                if (typeof renderWorksSection === 'function') {
-                    try { renderWorksSection(); } catch(e) {}
-                    markRenderComplete();
-                }
-                if (typeof applyTexts === 'function') {
-                    try { applyTexts(loadTexts()); } catch(e) {}
-                    markRenderComplete();
-                }
-            }, 500);
+        // 诊断点
+        (function() {
+            const versionDebug = document.createElement('div');
+            versionDebug.style.cssText = 'position: fixed; bottom: 0; left: 0; color: rgba(255,255,255,0.3); font-size: 10px; z-index: 999; pointer-events: none;';
+            versionDebug.textContent = 'fix-core-functions';
+            document.body.appendChild(versionDebug);
         })();
     </script>
-    <div style="display:none;" id="version-debug">debug-video-layer-20260120</div>
 </body>
 </html>
