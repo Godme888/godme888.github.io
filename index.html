@@ -13,7 +13,7 @@
 
         html {
             scroll-behavior: smooth;
-            isolation: isolate; /* 创建全局层叠上下文，确保 z-index 生效 */
+            isolation: isolate;
         }
 
         body {
@@ -23,7 +23,7 @@
             overflow-x: hidden;
             position: relative;
             background-color: #0a0a0a;
-            isolation: isolate; /* 双重保险 */
+            isolation: isolate;
         }
 
         .bg-container {
@@ -288,7 +288,6 @@
             transform: translateY(0);
         }
 
-        /* 灯箱 */
         .lightbox-overlay {
             display: none;
             position: fixed;
@@ -312,22 +311,18 @@
             object-fit: contain;
         }
 
-        /* ========== 移动端层叠加固 ========== */
         @media (max-width: 768px) {
-            /* 强制视频容器留在最底层，不接收任何点击 */
             #bg-video-wrapper {
                 z-index: -999 !important;
                 pointer-events: none !important;
             }
 
-            /* 内容容器保持在上层，并可以正常交互 */
             #page-content {
                 position: relative;
                 z-index: 1 !important;
                 pointer-events: auto !important;
             }
 
-            /* 所有主要区块再次确保 z-index */
             nav, section, footer {
                 position: relative;
                 z-index: 1;
@@ -341,8 +336,7 @@
                 font-size: clamp(2rem, 8vw, 3.5rem);
             }
 
-            .about-content,
-            .works-grid {
+            .about-content, .works-grid {
                 margin-left: 0;
             }
 
@@ -412,16 +406,13 @@
         .modal ::-webkit-scrollbar {
             width: 4px;
         }
-
         .modal ::-webkit-scrollbar-track {
             background: transparent;
         }
-
         .modal ::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.12);
             border-radius: 2px;
         }
-
         .modal ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.22);
         }
@@ -433,7 +424,6 @@
             color: #ffffff;
         }
 
-        /* 其余样式与前版一致，此处省略以保持简洁，实际代码中完整保留 */
         .drop-zone { width:100%; height:160px; border:2px dashed rgba(255,255,255,0.15); border-radius:8px; background:#1a1a1a; display:flex; justify-content:center; align-items:center; margin-bottom:0.75rem; transition:border-color 0.2s ease; cursor:pointer; }
         #musicDropZone { height:120px; }
         .drop-zone.dragover { border-color:#d4af37; }
@@ -444,6 +434,7 @@
         .url-input-row input::placeholder { color:#666; }
         .url-input-row .modal-btn { padding:10px 20px; background:#ffffff; color:#000000; border:none; border-radius:4px; cursor:pointer; font-size:14px; transition:opacity 0.2s ease; }
         .url-input-row .modal-btn:hover { opacity:0.8; }
+
         .video-sound-control { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; gap:1rem; }
         .video-sound-control label:first-child { font-size:0.9rem; color:#888; white-space:nowrap; }
         .video-sound-control.enabled label:first-child { color:#ffffff; }
@@ -454,34 +445,42 @@
         .toggle-switch input:checked + .slider { background-color:#d4af37; }
         .toggle-switch input:checked + .slider::before { transform:translateX(22px); }
         .toggle-switch.disabled { opacity:0.5; cursor:not-allowed; }
+
         .volume-control { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; gap:1rem; }
         .volume-control label { font-size:0.9rem; color:#aaa; white-space:nowrap; }
         .volume-control input[type="range"] { flex:1; height:4px; -webkit-appearance:none; appearance:none; background:linear-gradient(to right, #d4af37 var(--value, 50%), #2a2a2a var(--value, 50%)); border-radius:2px; outline:none; cursor:pointer; }
         .volume-control input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:16px; height:16px; background:#ffffff; border-radius:50%; cursor:pointer; transition:background 0.2s ease; margin-top:-6px; }
         .volume-control input[type="range"]::-webkit-slider-thumb:hover { background:#f0f0f0; }
+
         .modal-buttons { display:flex; gap:1rem; margin-top:1.5rem; }
         .modal-btn { flex:1; height:44px; padding:0 24px; border-radius:8px; font-family:inherit; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.3s ease; border:none; }
         .modal-btn.reset { background:#ffffff; color:#000000; }
         .modal-btn.reset:hover { opacity:0.8; }
         .modal-btn.close { background:transparent; color:#ffffff; border:1px solid rgba(255,255,255,0.3); }
         .modal-btn.close:hover { background:#ffffff; color:#000000; }
+
         .modal-tabs { display:flex; gap:1.5rem; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1); }
         .modal-tab { padding-bottom:0.5rem; cursor:pointer; color:#888; font-size:0.95rem; position:relative; }
         .modal-tab.active { color:#ffffff; }
         .modal-tab.active::after { content:''; position:absolute; bottom:-1px; left:0; width:100%; height:2px; background:#d4af37; }
+
         .tab-content { max-height:400px; overflow-y:auto; }
+
         .text-edit-list { display:flex; flex-direction:column; gap:16px; }
         .text-edit-item { display:flex; flex-direction:column; gap:0.3rem; }
         .text-edit-item label { font-size:13px; color:#999; }
         .text-edit-item input, .text-edit-item textarea { width:100%; height:48px; padding:0 16px; background:#1e1e1e; border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#ffffff; font-family:inherit; font-size:15px; transition:border-color 0.2s ease; }
         .text-edit-item textarea { height:auto; min-height:80px; padding:12px 16px; resize:vertical; }
         .text-edit-item input:focus, .text-edit-item textarea:focus { outline:none; border-color:#d4af37; }
+
         .login-modal { max-width:540px; }
         .login-modal input { width:100%; height:48px; padding:0 16px; background:#1e1e1e; border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#ffffff; font-family:inherit; font-size:15px; font-weight:300; margin-bottom:0; transition:border-color 0.2s ease; }
         .login-modal input:focus { outline:none; border-color:#d4af37; }
         .login-modal input.error { border-color:#ff4444; }
+
         .modal-btn.confirm { background:#ffffff; color:#000000; }
         .modal-btn.confirm:hover { opacity:0.8; }
+
         .project-list { display:flex; flex-direction:column; gap:16px; margin-bottom:16px; max-height:400px; overflow-y:auto; }
         .project-card { background:#1e1e1e; border-radius:8px; padding:16px; position:relative; }
         .project-card .delete-btn { position:absolute; top:8px; right:8px; width:28px; height:28px; border:none; background:transparent; color:#ffffff; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.2s ease; }
@@ -495,9 +494,11 @@
         .delete-media-btn { position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); border:none; color:#fff; width:20px; height:20px; border-radius:50%; font-size:14px; line-height:1; cursor:pointer; display:none; z-index:5; }
         .project-media-dropzone { position:relative; display:flex; align-items:center; justify-content:center; }
         .project-media-dropzone.has-media .delete-media-btn { display:block; }
+
         .modal-btn.add-project { background:transparent; color:#ffffff; border:1px solid rgba(255,255,255,0.3); margin-bottom:16px; }
         .modal-btn.add-project:hover:not(:disabled) { background:#ffffff; color:#000000; }
         .modal-btn.add-project:disabled { opacity:0.5; cursor:not-allowed; }
+
         .works-section { display:block !important; visibility:visible !important; opacity:1 !important; }
         .works-section .works-grid, .works-section #projects-container { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; visibility:visible !important; opacity:1 !important; }
         .works-section h2 { color:#ffffff !important; font-size:24px; margin-bottom:24px; }
@@ -655,22 +656,20 @@
     </div>
 
     <script>
-        // ========== 图片压缩函数 ==========
+        // ========== 图片压缩 ==========
         function compressImageToDataUrl(file, maxWidth, quality) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = new Image();
                     img.onload = function() {
-                        let width = img.width;
-                        let height = img.height;
+                        let width = img.width, height = img.height;
                         if (width > maxWidth) {
                             height = Math.round((height * maxWidth) / width);
                             width = maxWidth;
                         }
                         const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
+                        canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         resolve(canvas.toDataURL('image/jpeg', quality));
@@ -687,12 +686,10 @@
         (function() {
             const videos = document.querySelectorAll('video');
             const bgVideo = document.getElementById('bgVideo');
-            if (bgVideo) {
-                videos.forEach(video => { if (video !== bgVideo) video.remove(); });
-            }
+            if (bgVideo) videos.forEach(v => { if (v !== bgVideo) v.remove(); });
         })();
 
-        // ========== Firebase 初始化 ==========
+        // ========== Firebase ==========
         const firebaseConfig = {
             apiKey: "AIzaSyAjQTDH8-Xv2c-5h_seYxCdDAwRaMjor5w",
             authDomain: "heihong8-site.firebaseapp.com",
@@ -706,14 +703,13 @@
         const db = firebase.database();
         let isAuthenticated = false;
 
-        // ========== 导航栏滚动效果 ==========
+        // ========== 导航滚动 ==========
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) navbar.classList.add('scrolled');
-            else navbar.classList.remove('scrolled');
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
         });
 
-        // ========== 滚动动画 ==========
+        // ========== 动画 ==========
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
         }, { threshold: 0.2 });
@@ -791,13 +787,484 @@
             if (bgData && (bgData.url || bgData.dataUrl)) applyBackground(bgData);
         });
 
-        // ========== 文字、项目、音乐等逻辑保持不变（此处省略，与前版相同） ==========
-        // 实际代码请保持之前完整版本中的所有函数：applyTexts, renderWorksSection, initProjectEvents 等
-        // 包括项目媒体删除、灯箱等功能
+        // ========== 文字管理 ==========
+        const defaultTexts = {
+            siteName: '黑红8',
+            heroTitle: '创造有意义的数字体验',
+            heroSubtitle: '我是Godme，一个专注于简约与细节的创作者',
+            aboutTitle: '关于我',
+            aboutText: '我相信设计的力量在于简约。每一个像素、每一条线条都应该有其存在的意义。\n在数字世界中，我致力于创造既美观又实用的体验，让用户与技术之间的互动变得自然而流畅。',
+            footerText: '© 2026 Godme. 简约至极。'
+        };
+        function loadTexts() {
+            const saved = localStorage.getItem('siteTexts');
+            if (saved) { try { return JSON.parse(saved); } catch (e) { return defaultTexts; } }
+            return defaultTexts;
+        }
+        async function loadTextsFromCloud() {
+            try { const snap = await db.ref('siteData/texts').once('value'); return snap.val() || null; } catch (e) { return null; }
+        }
+        async function saveTextsToCloud(texts) { if (!isAuthenticated) return; try { await db.ref('siteData/texts').set(texts); } catch (e) {} }
+        function applyTexts(texts) {
+            document.querySelector('.logo').textContent = texts.siteName || defaultTexts.siteName;
+            document.querySelector('.hero h1').textContent = texts.heroTitle || defaultTexts.heroTitle;
+            document.querySelector('.hero p').textContent = texts.heroSubtitle || defaultTexts.heroSubtitle;
+            document.querySelector('#about .about-content h2').textContent = texts.aboutTitle || defaultTexts.aboutTitle;
+            const aboutContainer = document.querySelector('#about .about-content');
+            const existingParagraphs = aboutContainer.querySelectorAll('p');
+            const lines = (texts.aboutText || defaultTexts.aboutText).split('\n');
+            existingParagraphs.forEach((p, i) => { if (i >= lines.length) { p.style.display = 'none'; p.textContent = ''; } });
+            lines.forEach((line, i) => {
+                let p;
+                if (i < existingParagraphs.length) { p = existingParagraphs[i]; p.style.display = ''; }
+                else { p = document.createElement('p'); aboutContainer.appendChild(p); }
+                p.textContent = line;
+            });
+            document.querySelector('footer p').textContent = texts.footerText || defaultTexts.footerText;
+        }
+        (async () => {
+            const cloudTexts = await loadTextsFromCloud();
+            if (cloudTexts) applyTexts(cloudTexts);
+            else applyTexts(loadTexts());
+        })();
 
-        // 注意：因篇幅限制，脚本中我保留了核心背景逻辑，其他文字/项目/音乐完整代码请沿用上一次我给你的版本
-        // 但在本次回答中，为了可运行，我补上了关键函数骨架，你可以直接整体替换。
-        // 以下省略部分函数，你实际替换时请务必保留完整的文字、项目、音乐等功能代码。
+        // ========== 项目管理 ==========
+        const defaultProjects = [
+            { title: '品牌重塑项目', description: '为新兴科技公司打造全新的视觉识别系统，从Logo到整体品牌调性的完整设计。', link: '#' },
+            { title: '电商平台设计', description: '用户体验导向的电商界面设计，优化购物流程，提升转化率。', link: '#' },
+            { title: '数据可视化工具', description: '将复杂数据转化为直观易懂的可视化图表，帮助用户快速洞察业务趋势。', link: '#' }
+        ];
+        function loadProjects() {
+            const saved = localStorage.getItem('siteProjects');
+            if (saved) { try { return JSON.parse(saved); } catch (e) { localStorage.setItem('siteProjects', JSON.stringify(defaultProjects)); return defaultProjects; } }
+            localStorage.setItem('siteProjects', JSON.stringify(defaultProjects));
+            return defaultProjects;
+        }
+        function saveProjects(projects) { localStorage.setItem('siteProjects', JSON.stringify(projects)); }
+        async function loadProjectsFromCloud() { try { const snap = await db.ref('siteData/projects').once('value'); return snap.val() || null; } catch (e) { return null; } }
+        async function saveProjectsToCloud(projects) { if (!isAuthenticated) return; try { await db.ref('siteData/projects').set(projects); } catch (e) {} }
+
+        function renderProjectCard(project, index) {
+            const media = project.media || null;
+            const hasMedia = media && (media.type === 'image' || media.type === 'video');
+            const mediaUrl = hasMedia ? (media.url || media.dataUrl) : '';
+            const mediaPreview = hasMedia
+                ? (media.type === 'image' ? `<img src="${mediaUrl}" style="width:100%;height:100%;object-fit:contain;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#2a2a2a;border-radius:4px;color:#888;font-size:12px;">视频</div>`)
+                : '';
+            return `
+                <div class="project-card">
+                    <button class="delete-btn" data-index="${index}">×</button>
+                    <input type="text" class="project-title" placeholder="项目标题" value="${project.title || ''}">
+                    <textarea class="project-description" placeholder="项目描述">${project.description || ''}</textarea>
+                    <input type="text" class="project-link" placeholder="详情链接" value="${project.link || ''}">
+                    <div class="project-media-section">
+                        <label>项目媒体</label>
+                        <div class="project-media-dropzone ${hasMedia ? 'has-media' : ''}" data-index="${index}" style="height:80px;border:1px dashed rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;">
+                            ${mediaPreview || '<span style="color:#888;font-size:12px;">拖入图片或视频</span>'}
+                            ${hasMedia ? '<button class="delete-media-btn">×</button>' : ''}
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <input type="text" class="project-media-url" data-index="${index}" placeholder="粘贴图片/视频链接" value="${mediaUrl}" style="flex:1;">
+                            <button class="project-media-apply-btn" data-index="${index}" style="padding:6px 12px;background:rgba(212,175,55,0.2);border:1px solid rgba(212,175,55,0.3);border-radius:4px;color:#d4af37;cursor:pointer;font-size:12px;">应用</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        function renderProjects() {
+            const projects = loadProjects();
+            const projectList = document.getElementById('projectList');
+            if (projectList) {
+                projectList.innerHTML = projects.map((p, i) => renderProjectCard(p, i)).join('');
+                document.getElementById('addProjectBtn').disabled = projects.length >= 6;
+            }
+        }
+
+        async function renderWorksSection() {
+            let projects = await loadProjectsFromCloud();
+            if (!projects || !Array.isArray(projects) || projects.length === 0) {
+                projects = loadProjects();
+                if (!projects || projects.length === 0) projects = defaultProjects.map(p => ({...p, media: null}));
+            }
+            const container = document.getElementById('projects-container');
+            const worksSection = document.getElementById('works');
+            if (!container || !worksSection) return;
+            if (projects.length === 0) { worksSection.classList.add('hidden'); return; }
+            worksSection.classList.remove('hidden');
+            container.innerHTML = projects.map(project => {
+                let mediaHtml = '<div class="work-card-media"><span class="placeholder-icon">▣</span></div>';
+                if (project.media && project.media.type === 'image') {
+                    const src = project.media.url || project.media.dataUrl;
+                    mediaHtml = `<div class="work-card-media"><img src="${src}" alt=""></div>`;
+                } else if (project.media && project.media.type === 'video') {
+                    const src = project.media.url || project.media.dataUrl;
+                    mediaHtml = `<div class="work-card-media"><video src="${src}" muted loop playsinline autoplay></video></div>`;
+                }
+                return `
+                <div class="work-card animate-element">
+                    ${mediaHtml}
+                    <div class="work-card-content">
+                        <h3>${project.title || '未命名项目'}</h3>
+                        <p>${project.description || '暂无描述'}</p>
+                        <a href="${project.link || '#'}">查看详情</a>
+                    </div>
+                </div>`;
+            }).join('');
+            // 绑定放大事件
+            document.querySelectorAll('.work-card-media img').forEach(img => {
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const lightbox = document.getElementById('lightbox');
+                    document.getElementById('lightboxImg').src = img.src;
+                    lightbox.classList.add('show');
+                });
+            });
+        }
+
+        function initProjectEvents() {
+            renderWorksSection();
+            document.getElementById('addProjectBtn').onclick = () => {
+                let projects = loadProjects();
+                if (projects.length >= 6) return;
+                projects.push({ title: '', description: '', link: '#', media: null });
+                saveProjects(projects);
+                renderProjects();
+            };
+            document.getElementById('saveProjectsBtn').onclick = () => {
+                const cards = document.querySelectorAll('.project-card');
+                let projects = loadProjects();
+                projects = Array.from(cards).map((card, i) => ({
+                    title: card.querySelector('.project-title').value,
+                    description: card.querySelector('.project-description').value,
+                    link: card.querySelector('.project-link').value || '#',
+                    media: projects[i] ? projects[i].media : null
+                }));
+                saveProjects(projects);
+                renderWorksSection();
+                saveProjectsToCloud(projects);
+                const btn = document.getElementById('saveProjectsBtn');
+                btn.textContent = '已保存';
+                setTimeout(() => { btn.textContent = '保存修改'; }, 500);
+            };
+            // 事件委托
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('delete-btn')) {
+                    const index = parseInt(e.target.dataset.index);
+                    let projects = loadProjects();
+                    projects.splice(index, 1);
+                    saveProjects(projects);
+                    renderProjects();
+                    renderWorksSection();
+                }
+                if (e.target.classList.contains('delete-media-btn')) {
+                    e.stopPropagation();
+                    const index = parseInt(e.target.closest('.project-media-dropzone').dataset.index);
+                    let projects = loadProjects();
+                    projects[index].media = null;
+                    saveProjects(projects);
+                    renderProjects();
+                }
+                if (e.target.classList.contains('project-media-apply-btn')) {
+                    const index = parseInt(e.target.dataset.index);
+                    const url = document.querySelector(`.project-media-url[data-index="${index}"]`).value.trim();
+                    if (url) {
+                        const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
+                        const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
+                        let projects = loadProjects();
+                        if (isImage) projects[index].media = { type: 'image', url };
+                        else if (isVideo) projects[index].media = { type: 'video', url };
+                        saveProjects(projects);
+                        renderProjects();
+                    }
+                }
+            });
+            // 拖拽媒体
+            document.addEventListener('dragover', function(e) {
+                if (e.target.classList.contains('project-media-dropzone')) {
+                    e.preventDefault();
+                    e.target.style.borderColor = 'rgba(212,175,55,0.5)';
+                }
+            });
+            document.addEventListener('dragleave', function(e) {
+                if (e.target.classList.contains('project-media-dropzone')) {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.2)';
+                }
+            });
+            document.addEventListener('drop', function(e) {
+                if (e.target.classList.contains('project-media-dropzone')) {
+                    e.preventDefault();
+                    e.target.style.borderColor = 'rgba(255,255,255,0.2)';
+                    const index = parseInt(e.target.dataset.index);
+                    const file = e.dataTransfer.files[0];
+                    if (!file) return;
+                    if (file.type.startsWith('image/')) {
+                        compressImageToDataUrl(file, 800, 0.7).then(dataUrl => {
+                            let projects = loadProjects();
+                            projects[index].media = { type: 'image', dataUrl };
+                            saveProjects(projects);
+                            renderProjects();
+                        });
+                    } else if (file.type.startsWith('video/') && file.size <= 8*1024*1024) {
+                        const reader = new FileReader();
+                        reader.onload = ev => {
+                            let projects = loadProjects();
+                            projects[index].media = { type: 'video', dataUrl: ev.target.result };
+                            saveProjects(projects);
+                            renderProjects();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initProjectEvents);
+        else initProjectEvents();
+
+        // ========== 灯箱关闭 ==========
+        document.getElementById('lightbox').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('show');
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('show'); });
+
+        // ========== 开发者登录 ==========
+        const DEV_PASSWORD_ENABLED = true;
+        const DEV_PASSWORD = 'Xmshf20200103';
+        const developerLink = document.getElementById('developerLink');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const loginModal = document.getElementById('loginModal');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginConfirm = document.getElementById('loginConfirm');
+        const loginCancel = document.getElementById('loginCancel');
+        const modalTabs = document.querySelectorAll('.modal-tab');
+        const tabBackground = document.getElementById('tabBackground');
+        const tabText = document.getElementById('tabText');
+        const tabProjects = document.getElementById('tabProjects');
+        const tabMusic = document.getElementById('tabMusic');
+        const textInputs = document.querySelectorAll('[data-text]');
+        const saveTextsBtn = document.getElementById('saveTextsBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const closeBtn2 = document.getElementById('closeBtn2');
+        const resetBtn = document.getElementById('resetBtn');
+        const dropZone = document.getElementById('dropZone');
+        const bgUrlInput = document.getElementById('bgUrlInput');
+        const applyBgUrlBtn = document.getElementById('applyBgUrlBtn');
+        const videoSoundToggle = document.getElementById('videoSoundToggle');
+
+        developerLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (DEV_PASSWORD_ENABLED) {
+                loginModal.classList.add('show');
+                loginPassword.value = '';
+                loginPassword.classList.remove('error');
+            } else {
+                modalOverlay.classList.add('show');
+                switchTab('background');
+            }
+        });
+        closeBtn.addEventListener('click', () => modalOverlay.classList.remove('show'));
+        closeBtn2.addEventListener('click', () => modalOverlay.classList.remove('show'));
+        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('show'); });
+        loginCancel.addEventListener('click', () => loginModal.classList.remove('show'));
+        loginModal.addEventListener('click', (e) => { if (e.target === loginModal) loginModal.classList.remove('show'); });
+        loginConfirm.addEventListener('click', () => {
+            if (loginPassword.value === DEV_PASSWORD) {
+                isAuthenticated = true;
+                loginModal.classList.remove('show');
+                modalOverlay.classList.add('show');
+                switchTab('background');
+                const texts = loadTexts();
+                textInputs.forEach(input => {
+                    const key = input.dataset.text;
+                    if (key === 'aboutText') input.value = texts.aboutText || defaultTexts.aboutText;
+                    else input.value = texts[key] || defaultTexts[key] || '';
+                });
+            } else {
+                loginPassword.classList.add('error');
+                loginPassword.value = '';
+                setTimeout(() => loginPassword.classList.remove('error'), 500);
+            }
+        });
+
+        function switchTab(name) {
+            modalTabs.forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+            tabBackground.style.display = name === 'background' ? 'block' : 'none';
+            tabText.style.display = name === 'text' ? 'block' : 'none';
+            tabProjects.style.display = name === 'projects' ? 'block' : 'none';
+            tabMusic.style.display = name === 'music' ? 'block' : 'none';
+            if (name === 'text') {
+                const texts = loadTexts();
+                textInputs.forEach(input => {
+                    const key = input.dataset.text;
+                    if (key === 'aboutText') input.value = texts.aboutText || defaultTexts.aboutText;
+                    else input.value = texts[key] || defaultTexts[key] || '';
+                });
+            } else if (name === 'projects') renderProjects();
+        }
+        modalTabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+        saveTextsBtn.addEventListener('click', () => {
+            const texts = {};
+            textInputs.forEach(input => { texts[input.dataset.text] = input.value; });
+            localStorage.setItem('siteTexts', JSON.stringify(texts));
+            applyTexts(texts);
+            saveTextsToCloud(texts);
+            saveTextsBtn.textContent = '已保存';
+            setTimeout(() => { saveTextsBtn.textContent = '保存修改'; }, 500);
+        });
+
+        // 背景拖拽
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (!file) return;
+            if (file.type.startsWith('image/')) {
+                compressImageToDataUrl(file, 1920, 0.8).then(dataUrl => {
+                    applyBackground({ type: 'image', dataUrl });
+                    saveBackgroundToCloud(dataUrl, 'image');
+                    updateVideoSoundToggle();
+                    modalOverlay.classList.remove('show');
+                });
+            } else if (file.type.startsWith('video/') && file.size <= 8*1024*1024) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    applyBackground({ type: 'video', dataUrl: ev.target.result });
+                    saveBackgroundToCloud(ev.target.result, 'video');
+                    updateVideoSoundToggle();
+                    modalOverlay.classList.remove('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        applyBgUrlBtn.addEventListener('click', () => {
+            const url = bgUrlInput.value.trim();
+            if (!url) return;
+            const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
+            const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
+            if (isImage) {
+                applyBackground({ type: 'image', url });
+                saveBackgroundUrlToCloud(url, 'image');
+            } else if (isVideo) {
+                applyBackground({ type: 'video', url });
+                saveBackgroundUrlToCloud(url, 'video');
+            }
+            updateVideoSoundToggle();
+        });
+        resetBtn.addEventListener('click', () => {
+            clearBackgroundFromCloud();
+            resetToDefaultBackground();
+            updateVideoSoundToggle();
+            modalOverlay.classList.remove('show');
+        });
+
+        // 视频声音
+        function loadVideoMuted() { return localStorage.getItem('bgVideoMuted') !== 'false'; }
+        async function loadVideoMutedFromCloud() { try { const snap = await db.ref('siteData/bgVideoMuted').once('value'); return snap.val() !== null ? snap.val() : true; } catch (e) { return true; } }
+        async function saveVideoMutedToCloud(m) { if (!isAuthenticated) return; try { await db.ref('siteData/bgVideoMuted').set(m); } catch (e) {} }
+        function applyVideoMuted(m) { if (bgVideo) { bgVideo.muted = m; if (!m) bgVideo.volume = 1.0; } }
+        function updateVideoSoundToggle() {
+            const hasVideo = videoWrapper.style.display !== 'none';
+            document.querySelector('.video-sound-control').classList.toggle('enabled', hasVideo);
+            document.querySelector('.toggle-switch').classList.toggle('disabled', !hasVideo);
+            videoSoundToggle.disabled = !hasVideo;
+        }
+        videoSoundToggle.addEventListener('change', (e) => {
+            const muted = !e.target.checked;
+            localStorage.setItem('bgVideoMuted', muted);
+            saveVideoMutedToCloud(muted);
+            applyVideoMuted(muted);
+        });
+        (async () => {
+            const muted = await loadVideoMutedFromCloud();
+            videoSoundToggle.checked = !muted;
+            applyVideoMuted(muted);
+            updateVideoSoundToggle();
+        })();
+
+        // ========== 音乐管理 ==========
+        const musicDropZone = document.getElementById('musicDropZone');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const removeMusicBtn = document.getElementById('removeMusicBtn');
+        function createAudioElement(src, vol) {
+            let audio = document.getElementById('bgMusicAudio');
+            if (audio) { audio.pause(); audio.remove(); }
+            audio = document.createElement('audio');
+            audio.id = 'bgMusicAudio';
+            audio.src = src; audio.loop = true; audio.volume = vol / 100; audio.preload = 'auto';
+            document.body.appendChild(audio);
+            return audio;
+        }
+        function tryPlayAudio(audio) {
+            audio.play().catch(() => {
+                const fn = () => { audio.play().catch(() => {}); document.removeEventListener('click', fn); };
+                document.addEventListener('click', fn, { once: true });
+            });
+        }
+        musicDropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.target.classList.add('dragover'); });
+        musicDropZone.addEventListener('dragleave', (e) => e.target.classList.remove('dragover'));
+        musicDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.target.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (!file || !file.type.startsWith('audio/')) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const dataUrl = ev.target.result;
+                const vol = parseInt(volumeSlider.value);
+                saveMusicToCloud(dataUrl);
+                const audio = createAudioElement(dataUrl, vol);
+                tryPlayAudio(audio);
+            };
+            reader.readAsDataURL(file);
+        });
+        volumeSlider.addEventListener('input', (e) => {
+            const v = parseInt(e.target.value);
+            e.target.style.setProperty('--value', v + '%');
+            const audio = document.getElementById('bgMusicAudio');
+            if (audio) audio.volume = v / 100;
+            saveMusicVolumeToCloud(v);
+        });
+        removeMusicBtn.addEventListener('click', () => {
+            const audio = document.getElementById('bgMusicAudio');
+            if (audio) { audio.pause(); audio.remove(); }
+            clearMusicFromCloud();
+            volumeSlider.value = 50;
+        });
+        async function saveMusicToCloud(dataUrl) { if (!isAuthenticated) return; try { await db.ref('siteData/bgMusic/dataUrl').set(dataUrl); } catch (e) {} }
+        async function clearMusicFromCloud() { if (!isAuthenticated) return; try { await db.ref('siteData/bgMusic').remove(); } catch (e) {} }
+        async function saveMusicVolumeToCloud(v) { if (!isAuthenticated) return; try { await db.ref('siteData/bgMusic/volume').set(v); } catch (e) {} }
+        (async () => {
+            try {
+                const snap = await db.ref('siteData/bgMusic').once('value');
+                const data = snap.val();
+                if (data && data.dataUrl) {
+                    const vol = data.volume || 50;
+                    volumeSlider.value = vol;
+                    const audio = createAudioElement(data.dataUrl, vol);
+                    tryPlayAudio(audio);
+                }
+            } catch (e) {}
+        })();
+
+        // ========== 云同步监听 ==========
+        let prevTexts = null, prevProjects = null;
+        db.ref('siteData/texts').on('value', snap => {
+            const texts = snap.val();
+            if (texts && JSON.stringify(texts) !== JSON.stringify(prevTexts)) {
+                prevTexts = texts;
+                applyTexts(texts);
+            }
+        });
+        db.ref('siteData/projects').on('value', snap => {
+            const projects = snap.val();
+            if (projects && Array.isArray(projects) && JSON.stringify(projects) !== JSON.stringify(prevProjects)) {
+                prevProjects = projects;
+                renderWorksSection();
+            }
+        });
     </script>
 </body>
 </html>
