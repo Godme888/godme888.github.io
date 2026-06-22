@@ -24,32 +24,6 @@
             background-color: #0a0a0a;
         }
 
-        .video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .video-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .video-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: -1;
-        }
-
         .bg-container {
             position: fixed;
             top: 0;
@@ -1102,7 +1076,7 @@
     </div>
 
     <script>
-        // ========== 图片压缩函数（修复缺失） ==========
+        // ========== 图片压缩函数 ==========
         function compressImageToDataUrl(file, maxWidth, quality) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1124,7 +1098,6 @@
                         resolve(dataUrl);
                     };
                     img.onerror = function() {
-                        // 如果无法作为图片加载，返回原始 Data URL（可能不是图片）
                         resolve(e.target.result);
                     };
                     img.src = e.target.result;
@@ -1189,39 +1162,47 @@
         });
 
         // ========== 背景图片/视频管理 ==========
-        const backgroundType = 'video';
         const imageUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80';
-        const videoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-abstract-light-particles-loop-24979-large.mp4';
+        const defaultVideoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-abstract-light-particles-loop-24979-large.mp4';
 
         const bgContainer = document.getElementById('bgContainer');
-        const videoContainer = document.getElementById('bg-video-wrapper');
-        const videoElement = document.getElementById('bgVideo');
+        const videoWrapper = document.getElementById('bg-video-wrapper');
+        const bgVideo = document.getElementById('bgVideo');
+        const bgOverlay = document.getElementById('bgOverlay');
 
-        let userInteractionHandler = null;
-
-        videoElement.addEventListener('ended', function() {
-            if (videoElement.src) {
-                videoElement.play().catch(() => {});
-            }
-        });
-
-        videoElement.addEventListener('canplay', function() {
-            videoElement.play().catch(() => {
-                if (!userInteractionHandler) {
-                    userInteractionHandler = function() {
-                        videoElement.play().catch(() => {});
-                        document.removeEventListener('touchstart', userInteractionHandler);
-                        document.removeEventListener('click', userInteractionHandler);
-                        userInteractionHandler = null;
-                    };
-                    document.addEventListener('touchstart', userInteractionHandler, { once: true });
-                    document.addEventListener('click', userInteractionHandler, { once: true });
-                }
+        // 视频自动播放：仅在用户交互时重试一次，避免频繁监听
+        function tryPlayVideo() {
+            if (!bgVideo.src) return;
+            bgVideo.play().catch(() => {
+                // 被浏览器阻止，等待用户首次点击/触摸页面
+                const resume = () => {
+                    bgVideo.play().catch(() => {});
+                    document.removeEventListener('touchstart', resume);
+                    document.removeEventListener('click', resume);
+                };
+                document.addEventListener('touchstart', resume, { once: true });
+                document.addEventListener('click', resume, { once: true });
             });
+        }
+
+        // 监听 ended 事件保证循环（但 loop 属性已存在，可作为保险）
+        bgVideo.addEventListener('ended', () => {
+            bgVideo.play().catch(() => {});
         });
 
-        if (videoElement.src) {
-            videoElement.play().catch(() => {});
+        // 初始播放（如果已有默认视频链接）
+        if (defaultVideoUrl) {
+            bgVideo.src = defaultVideoUrl;
+            bgVideo.load();
+            // 等待 canplay 再播放更稳妥，但也可以直接 play
+            bgVideo.addEventListener('canplay', function onCanPlay() {
+                tryPlayVideo();
+                bgVideo.removeEventListener('canplay', onCanPlay);
+            }, { once: true });
+            // 如果视频已经处于就绪状态，直接尝试播放
+            if (bgVideo.readyState >= 3) {
+                tryPlayVideo();
+            }
         }
 
         const DB_NAME = 'BackgroundDB';
@@ -1239,17 +1220,6 @@
                         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
                     }
                 };
-            });
-        }
-
-        async function saveBackground(file, type) {
-            const db = await openDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(STORE_NAME, 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                store.put({ id: 'customBackground', file: file, type: type });
-                transaction.oncomplete = () => resolve();
-                transaction.onerror = () => reject(transaction.error);
             });
         }
 
@@ -1283,39 +1253,8 @@
             } catch (e) {}
         }
 
-        async function loadBackground() {
-            const cloudData = await loadBackgroundFromCloud();
-            if (cloudData && cloudData.dataUrl) {
-                return { type: cloudData.type, file: null, dataUrl: cloudData.dataUrl };
-            }
-            const db = await openDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(STORE_NAME, 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.get('customBackground');
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        async function clearBackground() {
-            const db = await openDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(STORE_NAME, 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                store.delete('customBackground');
-                transaction.oncomplete = () => resolve();
-                transaction.onerror = () => reject(transaction.error);
-            });
-        }
-
-        let currentBgData = null;
-
-        function renderBackground(bgData) {
+        function applyBackground(bgData) {
             if (!bgData) return;
-            
-            currentBgData = bgData;
-            
             if (bgData.type === 'image') {
                 const src = bgData.url || bgData.dataUrl;
                 if (src) {
@@ -1324,63 +1263,48 @@
                     document.body.style.backgroundPosition = 'center';
                     document.body.style.backgroundRepeat = 'no-repeat';
                     document.body.style.backgroundAttachment = 'fixed';
-                    videoContainer.style.display = 'none';
-                    bgContainer.style.display = 'none';
+                    videoWrapper.style.display = 'none';
                 }
             } else if (bgData.type === 'video') {
                 const src = bgData.url || bgData.dataUrl;
                 if (src) {
                     document.body.style.backgroundImage = 'none';
-                    bgContainer.style.display = 'none';
-                    videoContainer.style.display = 'block';
+                    videoWrapper.style.display = 'block';
                     bgVideo.src = src;
                     bgVideo.load();
-                    bgVideo.play().catch(() => {});
+                    tryPlayVideo();
                 }
             }
         }
 
-        function renderDefaultBackground() {
-            if (currentBgData) {
-                renderBackground(currentBgData);
-                return;
-            }
-            
-            if (backgroundType === 'image') {
-                document.body.style.backgroundImage = `url(${imageUrl})`;
-                document.body.style.backgroundSize = 'cover';
-                document.body.style.backgroundPosition = 'center';
-                document.body.style.backgroundRepeat = 'no-repeat';
-                document.body.style.backgroundAttachment = 'fixed';
-                videoContainer.style.display = 'none';
-                bgContainer.style.display = 'none';
-            } else {
-                document.body.style.backgroundImage = 'none';
-                bgContainer.style.display = 'none';
-                videoContainer.style.display = 'block';
-                bgVideo.play().catch(() => {});
-            }
+        function resetToDefaultBackground() {
+            document.body.style.backgroundImage = 'none';
+            videoWrapper.style.display = 'block';
+            bgVideo.src = defaultVideoUrl;
+            bgVideo.load();
+            tryPlayVideo();
         }
 
+        // 初始化背景：优先从云端读取
         (async () => {
             try {
-                const snapshot = await db.ref('siteData/background').once('value');
-                const bgData = snapshot.val();
-                if (bgData && (bgData.type === 'image' || bgData.type === 'video') && (bgData.url || bgData.dataUrl)) {
-                    renderBackground(bgData);
+                const bgData = await loadBackgroundFromCloud();
+                if (bgData && (bgData.url || bgData.dataUrl)) {
+                    applyBackground(bgData);
                 } else {
-                    renderDefaultBackground();
+                    resetToDefaultBackground();
                 }
             } catch (e) {
-                renderDefaultBackground();
+                resetToDefaultBackground();
             }
         })();
 
+        // 监听云端背景变化
         db.ref('siteData/background').on('value', (snapshot) => {
             try {
                 const bgData = snapshot.val();
-                if (bgData && (bgData.type === 'image' || bgData.type === 'video') && (bgData.url || bgData.dataUrl)) {
-                    renderBackground(bgData);
+                if (bgData && (bgData.url || bgData.dataUrl)) {
+                    applyBackground(bgData);
                 }
             } catch (e) {}
         });
@@ -1429,12 +1353,10 @@
             document.querySelector('.hero p').textContent = texts.heroSubtitle || defaultTexts.heroSubtitle;
             document.querySelector('#about .about-content h2').textContent = texts.aboutTitle || defaultTexts.aboutTitle;
 
-            // 处理关于我段落（支持任意行数）
             const aboutContainer = document.querySelector('#about .about-content');
             const existingParagraphs = aboutContainer.querySelectorAll('p');
             const lines = (texts.aboutText || defaultTexts.aboutText).split('\n');
             
-            // 移除多余的段落
             existingParagraphs.forEach((p, index) => {
                 if (index >= lines.length) {
                     p.style.display = 'none';
@@ -1442,12 +1364,11 @@
                 }
             });
 
-            // 更新或创建段落
             lines.forEach((line, index) => {
                 let p;
                 if (index < existingParagraphs.length) {
                     p = existingParagraphs[index];
-                    p.style.display = ''; // 确保可见
+                    p.style.display = '';
                 } else {
                     p = document.createElement('p');
                     aboutContainer.appendChild(p);
@@ -1521,8 +1442,6 @@
         }
 
         function renderProjectCard(project, index) {
-            const mediaType = project.media ? project.media.type : 'none';
-            const mediaUrl = project.media ? (project.media.url || project.media.dataUrl || '') : '';
             const mediaPreview = project.media && project.media.type === 'image' 
                 ? `<img src="${project.media.url || project.media.dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">`
                 : project.media && project.media.type === 'video'
@@ -1540,7 +1459,7 @@
                             ${mediaPreview || '<span style="color:#888;font-size:12px;">拖入图片或视频</span>'}
                         </div>
                         <div style="display:flex;gap:8px;margin-top:8px;">
-                            <input type="text" class="project-media-url" data-index="${index}" placeholder="粘贴图片/视频链接" value="${mediaUrl}" style="flex:1;">
+                            <input type="text" class="project-media-url" data-index="${index}" placeholder="粘贴图片/视频链接" value="${project.media ? (project.media.url || '') : ''}" style="flex:1;">
                             <button class="project-media-apply-btn" data-index="${index}" style="padding:6px 12px;background:rgba(212,175,55,0.2);border:1px solid rgba(212,175,55,0.3);border-radius:4px;color:#d4af37;cursor:pointer;font-size:12px;">应用</button>
                         </div>
                     </div>
@@ -1581,21 +1500,14 @@
                 }
             }
             if (!projects || projects.length === 0) {
-                const defaultProjects = [
-                    {title: '品牌重塑项目', description: '为新兴科技公司打造全新的视觉识别系统，从Logo到整体品牌调性的完整设计。', link: '#', media: null},
-                    {title: '电商平台设计', description: '用户体验导向的电商界面设计，优化购物流程，提升转化率。', link: '#', media: null},
-                    {title: '数据可视化工具', description: '将复杂数据转化为直观易懂的可视化图表，帮助用户快速洞察业务趋势。', link: '#', media: null}
-                ];
-                localStorage.setItem('siteProjects', JSON.stringify(defaultProjects));
-                projects = defaultProjects;
+                projects = defaultProjects.map(p => ({ ...p, media: null }));
+                localStorage.setItem('siteProjects', JSON.stringify(projects));
             }
             
             const container = document.getElementById('projects-container');
             const worksSection = document.getElementById('works');
             
-            if (!container || !worksSection) {
-                return;
-            }
+            if (!container || !worksSection) return;
             
             if (projects.length === 0) {
                 worksSection.classList.add('hidden');
@@ -1631,14 +1543,13 @@
         function initProjectEvents() {
             renderWorksSection();
             
-            const tabProjects = document.getElementById('tabProjects');
             const addProjectBtn = document.getElementById('addProjectBtn');
             const saveProjectsBtn = document.getElementById('saveProjectsBtn');
             const closeBtn3 = document.getElementById('closeBtn3');
             
             if (closeBtn3) {
                 closeBtn3.onclick = function() {
-                    modalOverlay.classList.remove('show');
+                    document.getElementById('modalOverlay').classList.remove('show');
                 };
             }
             
@@ -1652,7 +1563,7 @@
                 };
             }
             
-            // 使用事件委托处理项目列表中的点击（删除、媒体应用）
+            // 事件委托处理删除和媒体应用
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('delete-btn')) {
                     const index = parseInt(e.target.getAttribute('data-index'));
@@ -1681,7 +1592,7 @@
                 }
             });
             
-            // 拖拽媒体到项目
+            // 项目媒体拖拽
             document.addEventListener('dragover', function(e) {
                 if (e.target.classList.contains('project-media-dropzone')) {
                     e.preventDefault();
@@ -1744,7 +1655,7 @@
                     renderWorksSection();
                     saveProjectsToCloud(projects);
                     saveProjectsBtn.textContent = '已保存';
-                    setTimeout(function() {
+                    setTimeout(() => {
                         saveProjectsBtn.textContent = '保存修改';
                     }, 500);
                 };
@@ -1875,7 +1786,6 @@
             setTimeout(() => {
                 saveTextsBtn.textContent = '保存修改';
             }, 500);
-            // 不再关闭弹窗
         });
 
         // 背景拖拽处理
@@ -1900,10 +1810,7 @@
                 if (fileType.startsWith('image/')) {
                     compressImageToDataUrl(file, 1920, 0.8).then(dataUrl => {
                         if (dataUrl) {
-                            videoContainer.style.display = 'none';
-                            bgContainer.style.backgroundImage = `url(${dataUrl})`;
-                            bgContainer.style.backgroundSize = 'cover';
-                            bgContainer.style.backgroundPosition = 'center';
+                            applyBackground({ type: 'image', dataUrl: dataUrl });
                             saveBackgroundToCloud(dataUrl, 'image');
                             updateVideoSoundToggle();
                             modalOverlay.classList.remove('show');
@@ -1913,10 +1820,7 @@
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         const dataUrl = event.target.result;
-                        bgContainer.style.backgroundImage = 'none';
-                        videoElement.src = dataUrl;
-                        videoContainer.style.display = 'block';
-                        applyVideoMuted(loadVideoMuted());
+                        applyBackground({ type: 'video', dataUrl: dataUrl });
                         saveBackgroundToCloud(dataUrl, 'video');
                         updateVideoSoundToggle();
                         modalOverlay.classList.remove('show');
@@ -1933,17 +1837,11 @@
             const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
             const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
             if (isImage) {
-                videoContainer.style.display = 'none';
-                bgContainer.style.backgroundImage = `url(${url})`;
-                bgContainer.style.backgroundSize = 'cover';
-                bgContainer.style.backgroundPosition = 'center';
+                applyBackground({ type: 'image', url: url });
                 saveBackgroundUrlToCloud(url, 'image');
                 updateVideoSoundToggle();
             } else if (isVideo) {
-                bgContainer.style.backgroundImage = 'none';
-                videoElement.src = url;
-                videoContainer.style.display = 'block';
-                applyVideoMuted(loadVideoMuted());
+                applyBackground({ type: 'video', url: url });
                 saveBackgroundUrlToCloud(url, 'video');
                 updateVideoSoundToggle();
             }
@@ -1951,16 +1849,8 @@
 
         // 恢复默认背景
         resetBtn.addEventListener('click', () => {
-            clearBackground();
             clearBackgroundFromCloud();
-            if (backgroundType === 'image') {
-                videoContainer.style.display = 'none';
-                bgContainer.style.backgroundImage = `url(${imageUrl})`;
-            } else {
-                bgContainer.style.backgroundImage = 'none';
-                videoElement.src = videoUrl;
-                videoContainer.style.display = 'block';
-            }
+            resetToDefaultBackground();
             updateVideoSoundToggle();
             modalOverlay.classList.remove('show');
         });
@@ -1982,13 +1872,13 @@
         }
         function saveVideoMuted(muted) { localStorage.setItem('bgVideoMuted', muted.toString()); }
         function applyVideoMuted(muted) {
-            if (videoElement) {
-                videoElement.muted = muted;
-                if (!muted) videoElement.volume = 1.0;
+            if (bgVideo) {
+                bgVideo.muted = muted;
+                if (!muted) bgVideo.volume = 1.0;
             }
         }
         function updateVideoSoundToggle() {
-            const hasVideo = videoContainer.style.display !== 'none';
+            const hasVideo = videoWrapper.style.display !== 'none';
             if (hasVideo) {
                 videoSoundControl.classList.add('enabled');
                 toggleSwitch.classList.remove('disabled');
@@ -2235,14 +2125,6 @@
                     try { await db.ref('siteData/projects').set(JSON.parse(localProjects)); } catch (e) {}
                 }
             }
-        })();
-
-        // 诊断点
-        (function() {
-            const versionDebug = document.createElement('div');
-            versionDebug.style.cssText = 'position: fixed; bottom: 0; left: 0; color: rgba(255,255,255,0.3); font-size: 10px; z-index: 999; pointer-events: none;';
-            versionDebug.textContent = 'fix-core-functions';
-            document.body.appendChild(versionDebug);
         })();
     </script>
 </body>
